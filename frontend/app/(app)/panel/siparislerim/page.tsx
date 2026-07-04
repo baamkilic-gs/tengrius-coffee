@@ -31,6 +31,7 @@ export default function MyOrdersPage() {
     api("/orders/mine")
       .then((res) => res.json())
       .then(setOrders)
+      .catch(() => setOrders([]))
       .finally(() => setLoading(false));
   };
 

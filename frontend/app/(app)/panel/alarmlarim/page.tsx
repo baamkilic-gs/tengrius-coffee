@@ -26,6 +26,7 @@ export default function PriceAlertsPage() {
     api("/price-alerts/mine")
       .then((res) => res.json())
       .then(setAlerts)
+      .catch(() => setAlerts([]))
       .finally(() => setLoading(false));
   };
 

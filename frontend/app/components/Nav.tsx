@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getUser, getOrganization, clearSession, AuthUser, AuthOrganization } from "../../lib/api";
+import CoffeeBean from "./CoffeeBean";
 
 export default function Nav() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -23,7 +24,8 @@ export default function Nav() {
 
   return (
     <header className="bg-[var(--color-coffee)] text-[var(--color-cream)] px-6 py-3 flex items-center justify-between">
-      <Link href="/" className="font-semibold text-lg text-[var(--color-gold-light)]">
+      <Link href="/" className="flex items-center gap-2 font-semibold text-lg text-[var(--color-gold-light)]">
+        <CoffeeBean size={22} />
         Tengrius Coffee
       </Link>
       <nav className="flex items-center gap-4 text-sm">

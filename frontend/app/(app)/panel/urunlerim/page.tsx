@@ -33,6 +33,7 @@ export default function MyProductsPage() {
     api("/products/mine")
       .then((res) => res.json())
       .then(setProducts)
+      .catch(() => setProducts([]))
       .finally(() => setLoading(false));
   };
 

@@ -24,3 +24,71 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Kahve çekirdeği animasyonları — marka imzası */
+@keyframes bean-spin {
+  from {
+    transform: rotateY(0deg) rotateZ(-6deg);
+  }
+  to {
+    transform: rotateY(360deg) rotateZ(-6deg);
+  }
+}
+
+@keyframes bean-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-16px);
+  }
+}
+
+@keyframes bean-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.08);
+  }
+}
+
+.bean-stage {
+  perspective: 900px;
+}
+
+.bean-spin {
+  animation: bean-spin 3.4s linear infinite;
+  transform-style: preserve-3d;
+  filter: drop-shadow(0 20px 30px rgba(36, 19, 9, 0.45));
+}
+
+.bean-stage:hover .bean-spin {
+  animation-duration: 0.6s;
+}
+
+.bean-float {
+  animation: bean-float 3.8s ease-in-out infinite;
+}
+
+.bean-glow {
+  background: radial-gradient(circle, var(--color-gold-light) 0%, transparent 70%);
+  animation: bean-glow-pulse 3.8s ease-in-out infinite;
+}
+
+.hero-gradient {
+  background: radial-gradient(120% 120% at 15% 0%, #4a2d1c 0%, var(--color-coffee) 45%, var(--color-coffee-dark) 100%);
+}
+
+.card-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(59, 36, 23, 0.12);
+}

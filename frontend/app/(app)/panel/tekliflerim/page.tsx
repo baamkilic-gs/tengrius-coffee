@@ -28,6 +28,7 @@ export default function MyOffersPage() {
         setSent(sentData);
         setReceived(receivedData);
       })
+      .catch(() => {})
       .finally(() => setLoading(false));
   };
 

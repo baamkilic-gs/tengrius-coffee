@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api, setSession } from "../../../lib/api";
+import CoffeeBean from "../../components/CoffeeBean";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -43,70 +44,77 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="max-w-sm mx-auto px-6 py-16">
-      <h1 className="text-2xl font-bold text-[var(--color-coffee)] mb-6">Kayıt Ol</h1>
-      <form onSubmit={submit} className="space-y-4">
-        <input
-          placeholder="Ad Soyad"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          required
-          className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-        />
-        <input
-          type="email"
-          placeholder="E-posta"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-        />
-        <input
-          type="password"
-          placeholder="Şifre (en az 6 karakter)"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-        />
-        <hr className="border-gray-200" />
-        <input
-          placeholder="Firma / Organizasyon Adı"
-          value={orgName}
-          onChange={(e) => setOrgName(e.target.value)}
-          required
-          className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-        />
-        <select
-          value={orgType}
-          onChange={(e) => setOrgType(e.target.value)}
-          className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-        >
-          <option value="BUYER">Alıcıyım</option>
-          <option value="SELLER">Satıcıyım</option>
-          <option value="BOTH">Her ikisi</option>
-        </select>
-        <input
-          placeholder="Ülke"
-          value={country}
-          onChange={(e) => setCountry(e.target.value)}
-          className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-        />
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-[var(--color-coffee)] text-white py-2 rounded text-sm disabled:opacity-50"
-        >
-          {loading ? "Kayıt yapılıyor…" : "Kayıt Ol"}
-        </button>
-      </form>
-      <p className="text-sm text-gray-500 mt-4">
-        Zaten hesabınız var mı?{" "}
-        <Link href="/giris" className="underline">
-          Giriş yapın
-        </Link>
-      </p>
+    <div className="min-h-[calc(100dvh-56px)] hero-gradient flex items-center justify-center px-6 py-12">
+      <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-8">
+        <div className="flex justify-center mb-4">
+          <div className={loading ? "bean-float" : ""}>
+            <CoffeeBean size={64} className={loading ? "bean-spin" : ""} />
+          </div>
+        </div>
+        <h1 className="text-2xl font-bold text-[var(--color-coffee)] mb-6 text-center">Kayıt Ol</h1>
+        <form onSubmit={submit} className="space-y-3">
+          <input
+            placeholder="Ad Soyad"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            required
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)]"
+          />
+          <input
+            type="email"
+            placeholder="E-posta"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)]"
+          />
+          <input
+            type="password"
+            placeholder="Şifre (en az 6 karakter)"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)]"
+          />
+          <hr className="border-gray-200 my-1" />
+          <input
+            placeholder="Firma / Organizasyon Adı"
+            value={orgName}
+            onChange={(e) => setOrgName(e.target.value)}
+            required
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)]"
+          />
+          <select
+            value={orgType}
+            onChange={(e) => setOrgType(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)]"
+          >
+            <option value="BUYER">Alıcıyım</option>
+            <option value="SELLER">Satıcıyım</option>
+            <option value="BOTH">Her ikisi</option>
+          </select>
+          <input
+            placeholder="Ülke"
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)]"
+          />
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-[var(--color-coffee)] text-white py-2.5 rounded-lg text-sm font-medium hover:bg-[var(--color-coffee-dark)] transition-colors disabled:opacity-50"
+          >
+            {loading ? "Kayıt yapılıyor…" : "Kayıt Ol"}
+          </button>
+        </form>
+        <p className="text-sm text-gray-500 mt-4 text-center">
+          Zaten hesabınız var mı?{" "}
+          <Link href="/giris" className="text-[var(--color-coffee)] font-medium underline">
+            Giriş yapın
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

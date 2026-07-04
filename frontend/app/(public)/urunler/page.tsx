@@ -30,6 +30,7 @@ export default function ProductsListPage() {
     api(`/products?${params.toString()}`)
       .then((res) => res.json())
       .then(setProducts)
+      .catch(() => setProducts([]))
       .finally(() => setLoading(false));
   };
 
@@ -50,17 +51,17 @@ export default function ProductsListPage() {
           placeholder="Ülke"
           value={country}
           onChange={(e) => setCountry(e.target.value)}
-          className="border border-gray-300 rounded px-3 py-1.5 text-sm"
+          className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)]"
         />
         <input
           placeholder="Tür (Arabica/Robusta/Blend)"
           value={beanType}
           onChange={(e) => setBeanType(e.target.value)}
-          className="border border-gray-300 rounded px-3 py-1.5 text-sm"
+          className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)]"
         />
         <button
           type="submit"
-          className="bg-[var(--color-coffee)] text-white px-4 py-1.5 rounded text-sm"
+          className="bg-[var(--color-coffee)] text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-[var(--color-coffee-dark)] transition-colors"
         >
           Filtrele
         </button>
@@ -76,13 +77,13 @@ export default function ProductsListPage() {
             <Link
               key={p.id}
               href={`/urunler/${p.id}`}
-              className="border border-gray-200 rounded-lg p-4 hover:border-[var(--color-gold)] transition-colors"
+              className="card-lift bg-white border border-gray-200 rounded-xl p-5 hover:border-[var(--color-gold)]"
             >
               <p className="font-medium">{p.title}</p>
               <p className="text-sm text-gray-500">
                 {p.country} · {p.bean_type}
               </p>
-              <p className="mt-2 text-[var(--color-coffee)] font-semibold">
+              <p className="mt-3 text-[var(--color-coffee)] font-semibold">
                 {p.price_per_unit} {p.currency} / {p.pricing_unit === "CONTAINER" ? "konteyner" : "çuval"}
               </p>
               <p className="text-xs text-gray-400 mt-1">
