@@ -4,6 +4,38 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "../../lib/api";
 import CoffeeBean from "../components/CoffeeBean";
+import CoffeeCup from "../components/CoffeeCup";
+
+const SPECIES = [
+  {
+    name: "Coffea Arabica",
+    common: "Arabica",
+    tagline: "Küresel üretimin lideri",
+    desc: "Aromatik ve kompleks — dünya kahve üretiminin çoğunluğunu oluşturur.",
+    accent: "#5a3420",
+  },
+  {
+    name: "Coffea Canephora",
+    common: "Robusta",
+    tagline: "Yüksek kafein, güçlü gövde",
+    desc: "Yüksek kafeinli ve hastalıklara dirençli ana tür; sert ve dolgun bir profil sunar.",
+    accent: "#7a2d1f",
+  },
+  {
+    name: "Coffea Liberica",
+    common: "Liberica",
+    tagline: "İri çekirdek, isli aroma",
+    desc: "Filipinler ve Malezya'da yetişir; çok büyük çekirdekli, isli/odunsu bir tür.",
+    accent: "#3d5a3a",
+  },
+  {
+    name: "Coffea Excelsa",
+    common: "Excelsa",
+    tagline: "Ekşimsi, meyvemsi profil",
+    desc: "Botanik olarak Liberica'nın bir alt türü kabul edilir; tart ve meyvemsi notalar taşır.",
+    accent: "#7a2d1f",
+  },
+];
 
 interface FeaturedProduct {
   id: string;
@@ -74,18 +106,39 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="relative flex justify-center items-center h-56 md:h-72">
-            <div className="absolute w-56 h-56 md:w-72 md:h-72 rounded-full bean-glow" />
-            <div className="bean-stage relative">
-              <div className="bean-float">
-                <CoffeeBean size={140} className="bean-spin" />
-              </div>
+          <div className="relative flex justify-center items-center h-64 md:h-80">
+            <div className="absolute w-64 h-64 md:w-80 md:h-80 rounded-full bean-glow" />
+            <CoffeeCup size={160} />
+            <div className="absolute -left-2 bottom-8 bean-orbit-1">
+              <CoffeeBean size={40} />
+            </div>
+            <div className="absolute right-0 bottom-16 bean-orbit-2">
+              <CoffeeBean size={30} />
             </div>
           </div>
         </div>
       </section>
 
       <div className="max-w-5xl mx-auto px-6 py-12 space-y-14">
+        <section>
+          <h2 className="text-xl font-semibold mb-2 text-[var(--color-coffee)]">Kahve Türleri</h2>
+          <p className="text-sm text-gray-500 mb-5">Borsada işlem gören başlıca çiğ kahve türleri</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            {SPECIES.map((s) => (
+              <div key={s.common} className="card-lift bg-white border border-gray-200 rounded-xl p-5 text-center">
+                <div className="flex justify-center mb-2">
+                  <CoffeeCup size={56} showSteam={false} accent={s.accent} />
+                </div>
+                <p className="font-semibold" style={{ color: s.accent }}>
+                  {s.name}
+                </p>
+                <p className="text-xs text-gray-400 mb-2">{s.tagline}</p>
+                <p className="text-xs text-gray-500">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
         <section>
           <h2 className="text-xl font-semibold mb-4 text-[var(--color-coffee)]">Güncel Borsa Fiyatları</h2>
           {loading ? (

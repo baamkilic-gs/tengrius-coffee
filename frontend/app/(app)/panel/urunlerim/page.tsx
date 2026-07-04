@@ -87,6 +87,8 @@ export default function MyProductsPage() {
           >
             <option>Arabica</option>
             <option>Robusta</option>
+            <option>Liberica</option>
+            <option>Excelsa</option>
             <option>Blend</option>
           </select>
           <select

@@ -79,7 +79,7 @@ model Product {
   title              String
   country            String
   region             String?
-  bean_type          String // Arabica | Robusta | Blend
+  bean_type          String // Arabica | Robusta | Liberica | Excelsa | Blend
   harvest_year       Int?
   processing_method  String? // Washed | Natural | Honey ...
   moisture_pct       Float?
