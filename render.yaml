@@ -1,0 +1,23 @@
+# Render Blueprint — backend'i tek tıkla kurmak için.
+# Render panelinde "New +" → "Blueprint" → bu repoyu seçin.
+services:
+  - type: web
+    name: tengrius-coffee-backend
+    runtime: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm install && npx prisma generate && npm run build
+    # Her deploy'da bekleyen migration'lar otomatik uygulanır.
+    # NOT: ';' kullanılır ('&&' DEĞİL) — migrate adımı advisory-lock (P1002) ile
+    # takılsa bile uygulama yine de başlasın, deploy kilitlenmesin.
+    startCommand: npx prisma migrate deploy; node dist/main.js
+    healthCheckPath: /
+    envVars:
+      - key: DATABASE_URL
+        sync: false   # Render panelinden girilir (gizli)
+      - key: DIRECT_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true   # Render rastgele üretir
+      - key: CORS_ORIGINS
+        sync: false   # Vercel adresi belli olunca girilir

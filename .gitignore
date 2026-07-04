@@ -1,0 +1,17 @@
+# Bağımlılıklar ve derleme çıktıları
+node_modules/
+.next/
+dist/
+out/
+
+# Ortam değişkenleri — gizli bilgiler asla commit edilmez
+.env
+.env.*
+!.env.example
+
+# Kişisel araç ayarları
+.claude/settings.local.json
+
+# OS
+.DS_Store
+Thumbs.db
