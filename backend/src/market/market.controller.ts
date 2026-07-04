@@ -3,8 +3,23 @@ import { PrismaService } from '../prisma.service';
 import { Public } from '../auth/public.decorator';
 import { decimalFields } from '../common/serialize';
 
+const RATES_CACHE_TTL_MS = 5 * 60 * 1000; // dış API'leri her istekte yormamak için 5dk önbellek
+const GRAM_PER_OUNCE = 31.1034768;
+
+interface RatesPayload {
+  usd_try: number | null;
+  eur_try: number | null;
+  gold_usd_oz: number | null;
+  gold_try_gram: number | null;
+  btc_usd: number | null;
+  updated_at: string;
+}
+
 @Controller('market')
 export class MarketController {
+  private ratesCache: RatesPayload | null = null;
+  private ratesCacheAt = 0;
+
   constructor(private readonly prisma: PrismaService) {}
 
   /**
@@ -48,6 +63,45 @@ export class MarketController {
       featured: featured.map((p) => decimalFields(p, ['price_per_unit'])),
       price_list: priceList,
     };
+  }
+
+  /**
+   * GET /market/rates — kayan yazı için referans kurlar (USD/TRY, EUR/TRY, gram altın, BTC/USD).
+   * Üçüncü parti API'ler (Frankfurter/CoinGecko/gold-api.com) ücretsiz ve anahtarsız;
+   * biri başarısız olursa o alan null döner, diğerleri etkilenmez. 5dk önbelleklenir.
+   */
+  @Public()
+  @Get('rates')
+  async rates(): Promise<RatesPayload> {
+    if (this.ratesCache && Date.now() - this.ratesCacheAt < RATES_CACHE_TTL_MS) {
+      return this.ratesCache;
+    }
+
+    const [fx, btc, gold] = await Promise.allSettled([
+      fetch('https://api.frankfurter.app/latest?from=USD&to=TRY,EUR').then((r) => r.json()),
+      fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd').then((r) => r.json()),
+      fetch('https://api.gold-api.com/price/XAU').then((r) => r.json()),
+    ]);
+
+    const usdTry = fx.status === 'fulfilled' ? Number(fx.value?.rates?.TRY) : null;
+    const eurPerUsd = fx.status === 'fulfilled' ? Number(fx.value?.rates?.EUR) : null;
+    const eurTry = usdTry && eurPerUsd ? usdTry / eurPerUsd : null;
+    const btcUsd = btc.status === 'fulfilled' ? Number(btc.value?.bitcoin?.usd) : null;
+    const goldUsdOz = gold.status === 'fulfilled' ? Number(gold.value?.price) : null;
+    const goldTryGram = goldUsdOz && usdTry ? (goldUsdOz / GRAM_PER_OUNCE) * usdTry : null;
+
+    const payload: RatesPayload = {
+      usd_try: Number.isFinite(usdTry) ? usdTry : null,
+      eur_try: eurTry && Number.isFinite(eurTry) ? Math.round(eurTry * 100) / 100 : null,
+      gold_usd_oz: Number.isFinite(goldUsdOz) ? goldUsdOz : null,
+      gold_try_gram: goldTryGram && Number.isFinite(goldTryGram) ? Math.round(goldTryGram * 100) / 100 : null,
+      btc_usd: Number.isFinite(btcUsd) ? btcUsd : null,
+      updated_at: new Date().toISOString(),
+    };
+
+    this.ratesCache = payload;
+    this.ratesCacheAt = Date.now();
+    return payload;
   }
 
   /** GET /market/price-history?product_id= — bir ürünün fiyat geçmişi (opsiyonel grafik özelliği) */

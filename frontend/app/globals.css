@@ -92,3 +92,22 @@ body {
   transform: translateY(-4px);
   box-shadow: 0 12px 24px rgba(59, 36, 23, 0.12);
 }
+
+/* Kur/altın/bitcoin kayan yazısı */
+@keyframes ticker-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.ticker-track {
+  width: max-content;
+  animation: ticker-scroll 28s linear infinite;
+}
+
+.ticker-track:hover {
+  animation-play-state: paused;
+}

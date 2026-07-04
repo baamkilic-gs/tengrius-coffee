@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Nav from "./components/Nav";
+import RateTicker from "./components/RateTicker";
 
 export const metadata: Metadata = {
   title: "Tengrius Coffee",
@@ -16,6 +17,7 @@ export default function RootLayout({
     <html lang="tr" className="antialiased">
       <body className="min-h-dvh flex flex-col">
         <Nav />
+        <RateTicker />
         <main className="flex-1">{children}</main>
       </body>
     </html>
