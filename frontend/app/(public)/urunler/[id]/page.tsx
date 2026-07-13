@@ -70,14 +70,14 @@ export default function ProductDetailPage() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-10 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--color-coffee)]">{product.title}</h1>
-        <p className="text-gray-500">
+        <h1 className="text-2xl font-semibold text-[var(--color-coffee)]">{product.title}</h1>
+        <p className="text-[var(--text-secondary)]">
           {product.country}
           {product.region ? ` · ${product.region}` : ""} · {product.bean_type}
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 text-sm border border-gray-200 rounded-lg p-4">
+      <div className="grid grid-cols-2 gap-4 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-[20px] p-5">
         <div>Fiyat</div>
         <div className="font-semibold">
           {product.price_per_unit} {product.currency} /{" "}
@@ -112,34 +112,30 @@ export default function ProductDetailPage() {
       {product.cupping_notes && (
         <div>
           <h2 className="font-semibold mb-1">Cupping Notları</h2>
-          <p className="text-gray-600 text-sm">{product.cupping_notes}</p>
+          <p className="text-[var(--text-secondary)] text-sm">{product.cupping_notes}</p>
         </div>
       )}
 
       {message && <p className="text-sm text-[var(--color-coffee)]">{message}</p>}
 
       {!user && (
-        <p className="text-sm text-gray-500">
-          Teklif vermek veya satın almak için{" "}
-          <a href="/giris" className="underline">
-            giriş yapın
-          </a>
-          .
+        <p className="text-sm text-[var(--text-secondary)]">
+          Teklif vermek veya satın almak için <a href="/giris" className="link">giriş yapın</a>.
         </p>
       )}
 
       {user && !isPremium && !isOwnProduct && (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-[var(--text-secondary)]">
           Teklif verme ve satın alma yalnızca Premium üyelere açıktır.{" "}
-          <a href="/panel/uyelik" className="underline">
-            Üyeliğinizi yükseltin
-          </a>
-          .
+          <a href="/panel/uyelik" className="link">Üyeliğinizi yükseltin</a>.
         </p>
       )}
 
       {user && isPremium && !isOwnProduct && (
-        <form onSubmit={sendOffer} className="space-y-3 border border-gray-200 rounded-lg p-4">
+        <form
+          onSubmit={sendOffer}
+          className="space-y-3 bg-[var(--surface)] border border-[var(--border)] rounded-[20px] p-5"
+        >
           <h2 className="font-semibold">Teklif Ver</h2>
           <div className="flex gap-3">
             <input
@@ -149,7 +145,7 @@ export default function ProductDetailPage() {
               value={offerPrice}
               onChange={(e) => setOfferPrice(e.target.value)}
               required
-              className="border border-gray-300 rounded px-3 py-1.5 text-sm flex-1"
+              className="input flex-1"
             />
             <input
               type="number"
@@ -157,22 +153,21 @@ export default function ProductDetailPage() {
               value={offerQty}
               onChange={(e) => setOfferQty(e.target.value)}
               required
-              className="border border-gray-300 rounded px-3 py-1.5 text-sm flex-1"
+              className="input flex-1"
             />
           </div>
-          <button
-            type="submit"
-            className="bg-[var(--color-coffee)] text-white px-4 py-1.5 rounded text-sm"
-          >
-            Teklif Gönder
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push(`/panel/siparislerim?buy=${product.id}`)}
-            className="ml-3 bg-[var(--color-gold)] text-[var(--color-coffee-dark)] px-4 py-1.5 rounded text-sm font-medium"
-          >
-            Satın Al
-          </button>
+          <div className="flex gap-3">
+            <button type="submit" className="btn btn-primary">
+              Teklif Gönder
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push(`/panel/siparislerim?buy=${product.id}`)}
+              className="btn btn-primary"
+            >
+              Satın Al
+            </button>
+          </div>
         </form>
       )}
     </div>

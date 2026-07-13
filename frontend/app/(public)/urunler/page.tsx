@@ -38,7 +38,7 @@ export default function ProductsListPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-10 space-y-6">
-      <h1 className="text-2xl font-bold text-[var(--color-coffee)]">Ürünler</h1>
+      <h1 className="text-2xl font-semibold text-[var(--color-coffee)]">Ürünler</h1>
 
       <form
         onSubmit={(e) => {
@@ -51,18 +51,15 @@ export default function ProductsListPage() {
           placeholder="Ülke"
           value={country}
           onChange={(e) => setCountry(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)]"
+          className="input"
         />
         <input
-          placeholder="Tür (Arabica/Robusta/Blend)"
+          placeholder="Tür (Arabica/Robusta/Liberica/Excelsa/Blend)"
           value={beanType}
           onChange={(e) => setBeanType(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)]"
+          className="input"
         />
-        <button
-          type="submit"
-          className="bg-[var(--color-coffee)] text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-[var(--color-coffee-dark)] transition-colors"
-        >
+        <button type="submit" className="btn btn-primary">
           Filtrele
         </button>
       </form>
@@ -74,11 +71,7 @@ export default function ProductsListPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {products.map((p) => (
-            <Link
-              key={p.id}
-              href={`/urunler/${p.id}`}
-              className="card-lift bg-white border border-gray-200 rounded-xl p-5 hover:border-[var(--color-gold)]"
-            >
+            <Link key={p.id} href={`/urunler/${p.id}`} className="card block">
               <p className="font-medium">{p.title}</p>
               <p className="text-sm text-gray-500">
                 {p.country} · {p.bean_type}

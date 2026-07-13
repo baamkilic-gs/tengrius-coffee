@@ -24,7 +24,10 @@ export default function Nav() {
 
   return (
     <header className="bg-[var(--color-coffee)] text-[var(--color-cream)] px-6 py-3 flex items-center justify-between">
-      <Link href="/" className="flex items-center gap-2 font-semibold text-lg text-[var(--color-gold-light)]">
+      <Link
+        href="/"
+        className="flex items-center gap-2 font-semibold text-lg text-[var(--color-gold-light)] font-[var(--font-heading)]"
+      >
         <CoffeeBean size={22} />
         Tengrius Coffee
       </Link>
@@ -34,18 +37,19 @@ export default function Nav() {
             <span className="text-[var(--color-gold-light)]">
               {org.name} · {org.membership_tier === "PREMIUM" ? "Premium" : "Standart"}
             </span>
-            <Link href="/panel">Panel</Link>
-            <button onClick={logout} className="hover:text-[var(--color-gold-light)]">
+            <Link href="/panel" className="hover:text-[var(--color-gold-light)] transition-colors">
+              Panel
+            </Link>
+            <button onClick={logout} className="hover:text-[var(--color-gold-light)] transition-colors">
               Çıkış
             </button>
           </>
         ) : (
           <>
-            <Link href="/giris">Giriş</Link>
-            <Link
-              href="/kayit"
-              className="bg-[var(--color-gold)] text-[var(--color-coffee-dark)] px-3 py-1.5 rounded font-medium hover:bg-[var(--color-gold-light)]"
-            >
+            <Link href="/giris" className="hover:text-[var(--color-gold-light)] transition-colors">
+              Giriş
+            </Link>
+            <Link href="/kayit" className="btn btn-primary !py-1.5 !px-3.5 !text-sm">
               Kayıt Ol
             </Link>
           </>

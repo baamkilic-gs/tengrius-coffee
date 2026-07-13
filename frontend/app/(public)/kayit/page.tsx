@@ -45,20 +45,20 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-[calc(100dvh-56px)] hero-gradient flex items-center justify-center px-6 py-12">
-      <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-8">
+      <div className="card enter-fade-up max-w-sm w-full p-8">
         <div className="flex justify-center mb-4">
           <div className={loading ? "bean-float" : ""}>
             <CoffeeBean size={64} className={loading ? "bean-spin" : ""} />
           </div>
         </div>
-        <h1 className="text-2xl font-bold text-[var(--color-coffee)] mb-6 text-center">Kayıt Ol</h1>
+        <h1 className="text-2xl font-semibold text-[var(--color-coffee)] mb-6 text-center">Kayıt Ol</h1>
         <form onSubmit={submit} className="space-y-3">
           <input
             placeholder="Ad Soyad"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)]"
+            className="input w-full"
           />
           <input
             type="email"
@@ -66,7 +66,7 @@ export default function RegisterPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)]"
+            className="input w-full"
           />
           <input
             type="password"
@@ -74,21 +74,17 @@ export default function RegisterPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)]"
+            className="input w-full"
           />
-          <hr className="border-gray-200 my-1" />
+          <hr className="border-[var(--border)] my-1" />
           <input
             placeholder="Firma / Organizasyon Adı"
             value={orgName}
             onChange={(e) => setOrgName(e.target.value)}
             required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)]"
+            className="input w-full"
           />
-          <select
-            value={orgType}
-            onChange={(e) => setOrgType(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)]"
-          >
+          <select value={orgType} onChange={(e) => setOrgType(e.target.value)} className="input w-full">
             <option value="BUYER">Alıcıyım</option>
             <option value="SELLER">Satıcıyım</option>
             <option value="BOTH">Her ikisi</option>
@@ -97,22 +93,15 @@ export default function RegisterPage() {
             placeholder="Ülke"
             value={country}
             onChange={(e) => setCountry(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)]"
+            className="input w-full"
           />
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-[var(--color-coffee)] text-white py-2.5 rounded-lg text-sm font-medium hover:bg-[var(--color-coffee-dark)] transition-colors disabled:opacity-50"
-          >
+          {error && <p className="text-sm text-[var(--error)]">{error}</p>}
+          <button type="submit" disabled={loading} className="btn btn-primary w-full">
             {loading ? "Kayıt yapılıyor…" : "Kayıt Ol"}
           </button>
         </form>
-        <p className="text-sm text-gray-500 mt-4 text-center">
-          Zaten hesabınız var mı?{" "}
-          <Link href="/giris" className="text-[var(--color-coffee)] font-medium underline">
-            Giriş yapın
-          </Link>
+        <p className="text-sm text-[var(--text-secondary)] mt-4 text-center">
+          Zaten hesabınız var mı? <Link href="/giris" className="link font-medium">Giriş yapın</Link>
         </p>
       </div>
     </div>

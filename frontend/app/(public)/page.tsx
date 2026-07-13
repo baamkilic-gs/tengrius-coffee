@@ -78,29 +78,26 @@ export default function HomePage() {
       <section className="hero-gradient text-[var(--color-cream)] overflow-hidden">
         <div className="max-w-5xl mx-auto px-6 py-16 md:py-24 grid md:grid-cols-2 items-center gap-10">
           <div className="space-y-5 text-center md:text-left">
-            <p className="uppercase tracking-[0.2em] text-xs text-[var(--color-gold-light)] font-semibold">
+            <p className="enter-fade-up uppercase tracking-[0.2em] text-xs text-[var(--color-gold-light)] font-semibold">
               Çiğ Kahve Pazar Yeri
             </p>
-            <h1 className="text-4xl md:text-5xl font-bold leading-tight">
+            <h1
+              className="enter-fade-up text-5xl md:text-6xl font-semibold leading-[1.08]"
+              style={{ textShadow: "0 2px 10px rgba(0,0,0,0.18)" }}
+            >
               Dünyanın kahvesi,
               <br />
               tek borsada buluşuyor
             </h1>
-            <p className="text-[var(--color-cream)]/80 max-w-md mx-auto md:mx-0">
+            <p className="enter-fade-up text-[var(--color-cream)]/80 max-w-md mx-auto md:mx-0 font-[var(--font-sans)]">
               Alıcı ve satıcıları aynı platformda buluşturan çift taraflı çiğ kahve pazar yeri.
               Güncel fiyatları takip et, teklif ver, güvenle satın al.
             </p>
-            <div className="flex flex-wrap gap-3 justify-center md:justify-start pt-2">
-              <Link
-                href="/urunler"
-                className="bg-[var(--color-gold)] text-[var(--color-coffee-dark)] px-5 py-2.5 rounded-full font-semibold hover:bg-[var(--color-gold-light)] transition-colors"
-              >
+            <div className="enter-fade-up flex flex-wrap gap-3 justify-center md:justify-start pt-2">
+              <Link href="/urunler" className="btn btn-primary">
                 Ürünlere Göz At
               </Link>
-              <Link
-                href="/kayit"
-                className="border border-[var(--color-gold-light)]/60 px-5 py-2.5 rounded-full font-semibold hover:bg-white/10 transition-colors"
-              >
+              <Link href="/kayit" className="btn btn-secondary">
                 Ücretsiz Kayıt Ol
               </Link>
             </div>
@@ -125,7 +122,7 @@ export default function HomePage() {
           <p className="text-sm text-gray-500 mb-5">Borsada işlem gören başlıca çiğ kahve türleri</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {SPECIES.map((s) => (
-              <div key={s.common} className="card-lift bg-white border border-gray-200 rounded-xl p-5 text-center">
+              <div key={s.common} className="card text-center">
                 <div className="flex justify-center mb-2">
                   <CoffeeCup size={56} showSteam={false} accent={s.accent} />
                 </div>
@@ -180,11 +177,7 @@ export default function HomePage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {featured.map((p) => (
-                <Link
-                  key={p.id}
-                  href={`/urunler/${p.id}`}
-                  className="card-lift bg-white border border-gray-200 rounded-xl p-5 hover:border-[var(--color-gold)]"
-                >
+                <Link key={p.id} href={`/urunler/${p.id}`} className="card block">
                   <p className="font-medium">{p.title}</p>
                   <p className="text-sm text-gray-500">
                     {p.country} · {p.bean_type}
