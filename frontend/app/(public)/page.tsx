@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "../../lib/api";
-import CoffeeBean from "../components/CoffeeBean";
-import CoffeeCup from "../components/CoffeeCup";
 
 const SPECIES = [
   {
@@ -76,42 +74,29 @@ export default function HomePage() {
     <div>
       {/* Hero */}
       <section className="hero-gradient text-[var(--color-cream)] overflow-hidden">
-        <div className="max-w-5xl mx-auto px-6 py-16 md:py-24 grid md:grid-cols-2 items-center gap-10">
-          <div className="space-y-5 text-center md:text-left">
-            <p className="enter-fade-up uppercase tracking-[0.2em] text-xs text-[var(--color-gold-light)] font-semibold">
-              Çiğ Kahve Pazar Yeri
-            </p>
-            <h1
-              className="enter-fade-up text-5xl md:text-6xl font-semibold leading-[1.08]"
-              style={{ textShadow: "0 2px 10px rgba(0,0,0,0.18)" }}
-            >
-              Dünyanın kahvesi,
-              <br />
-              tek borsada buluşuyor
-            </h1>
-            <p className="enter-fade-up text-[var(--color-cream)]/80 max-w-md mx-auto md:mx-0 font-[var(--font-sans)]">
-              Alıcı ve satıcıları aynı platformda buluşturan çift taraflı çiğ kahve pazar yeri.
-              Güncel fiyatları takip et, teklif ver, güvenle satın al.
-            </p>
-            <div className="enter-fade-up flex flex-wrap gap-3 justify-center md:justify-start pt-2">
-              <Link href="/urunler" className="btn btn-primary">
-                Ürünlere Göz At
-              </Link>
-              <Link href="/kayit" className="btn btn-secondary">
-                Ücretsiz Kayıt Ol
-              </Link>
-            </div>
-          </div>
-
-          <div className="relative flex justify-center items-center h-64 md:h-80">
-            <div className="absolute w-64 h-64 md:w-80 md:h-80 rounded-full bean-glow" />
-            <CoffeeCup size={160} />
-            <div className="absolute -left-2 bottom-8 bean-orbit-1">
-              <CoffeeBean size={40} />
-            </div>
-            <div className="absolute right-0 bottom-16 bean-orbit-2">
-              <CoffeeBean size={30} />
-            </div>
+        <div className="max-w-3xl mx-auto px-6 py-20 md:py-28 text-center space-y-5">
+          <p className="enter-fade-up uppercase tracking-[0.2em] text-xs text-[var(--color-gold-light)] font-semibold">
+            Çiğ Kahve Pazar Yeri
+          </p>
+          <h1
+            className="enter-fade-up text-5xl md:text-6xl font-semibold leading-[1.08]"
+            style={{ textShadow: "0 2px 10px rgba(0,0,0,0.18)" }}
+          >
+            Dünyanın kahvesi,
+            <br />
+            tek borsada buluşuyor
+          </h1>
+          <p className="enter-fade-up text-[var(--color-cream)]/80 max-w-md mx-auto">
+            Alıcı ve satıcıları aynı platformda buluşturan çift taraflı çiğ kahve pazar yeri.
+            Güncel fiyatları takip et, teklif ver, güvenle satın al.
+          </p>
+          <div className="enter-fade-up flex flex-wrap gap-3 justify-center pt-2">
+            <Link href="/urunler" className="btn btn-primary">
+              Ürünlere Göz At
+            </Link>
+            <Link href="/kayit" className="btn btn-secondary">
+              Ücretsiz Kayıt Ol
+            </Link>
           </div>
         </div>
       </section>
@@ -123,14 +108,12 @@ export default function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {SPECIES.map((s) => (
               <div key={s.common} className="card text-center">
-                <div className="flex justify-center mb-2">
-                  <CoffeeCup size={56} showSteam={false} accent={s.accent} />
-                </div>
+                <div className="w-10 h-1 rounded-full mx-auto mb-4" style={{ background: s.accent }} />
                 <p className="font-semibold" style={{ color: s.accent }}>
                   {s.name}
                 </p>
-                <p className="text-xs text-gray-400 mb-2">{s.tagline}</p>
-                <p className="text-xs text-gray-500">{s.desc}</p>
+                <p className="text-xs text-[var(--text-tertiary)] mb-2">{s.tagline}</p>
+                <p className="text-xs text-[var(--text-secondary)]">{s.desc}</p>
               </div>
             ))}
           </div>

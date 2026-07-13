@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api, setSession } from "../../../lib/api";
-import CoffeeBean from "../../components/CoffeeBean";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -46,11 +45,6 @@ export default function RegisterPage() {
   return (
     <div className="min-h-[calc(100dvh-56px)] hero-gradient flex items-center justify-center px-6 py-12">
       <div className="card enter-fade-up max-w-sm w-full p-8">
-        <div className="flex justify-center mb-4">
-          <div className={loading ? "bean-float" : ""}>
-            <CoffeeBean size={64} className={loading ? "bean-spin" : ""} />
-          </div>
-        </div>
         <h1 className="text-2xl font-semibold text-[var(--color-coffee)] mb-6 text-center">Kayıt Ol</h1>
         <form onSubmit={submit} className="space-y-3">
           <input
