@@ -1,5 +1,5 @@
-/* DESIGN.md §3 — Fraunces (baslik) + Source Sans 3 (govde) */
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&display=swap");
+/* DESIGN.md §3 — Fraunces (baslik) + Source Sans 3 (govde); Caveat yalnizca kraft etiketlerde */
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=Caveat:wght@600;700&display=swap");
 @import "tailwindcss";
 
 :root {
@@ -181,6 +181,63 @@ h1, h2, h3, h4, h5, h6 {
 }
 .enter-fade-up:nth-child(3) {
   animation-delay: 0.16s;
+}
+
+/* Kahve turleri — ahsap panel + kase + kraft etiket */
+.wood-panel {
+  position: relative;
+  border-radius: 16px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.06) 0px,
+      transparent 3px,
+      transparent 38px,
+      rgba(0, 0, 0, 0.06) 40px
+    ),
+    linear-gradient(180deg, #8a6a4a 0%, #6b4a30 100%);
+  overflow: hidden;
+}
+
+.wood-panel-rule {
+  height: 2px;
+  background: #c0602f;
+  opacity: 0.75;
+}
+
+.bean-bowl {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  box-shadow:
+    0 0 0 6px rgba(255, 245, 230, 0.14),
+    0 0 0 8px rgba(0, 0, 0, 0.25),
+    0 10px 18px rgba(0, 0, 0, 0.35);
+  transition: transform 0.22s ease;
+}
+
+@media (min-width: 768px) {
+  .bean-bowl {
+    width: 128px;
+    height: 128px;
+  }
+}
+
+.group:hover .bean-bowl {
+  transform: translateY(-3px) scale(1.03);
+}
+
+.kraft-tag {
+  background: #d9c19a;
+  color: #3b2417;
+  font-family: "Caveat", cursive;
+  font-weight: 700;
+  font-size: 1.15rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: 3px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
 }
 
 /* Arka plan fotografi: Indra Projects, Unsplash License (ucretsiz, ticari kullanima acik, atif zorunlu degil) */

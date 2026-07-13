@@ -11,6 +11,8 @@ const SPECIES = [
     tagline: "Küresel üretimin lideri",
     desc: "Aromatik ve kompleks — dünya kahve üretiminin çoğunluğunu oluşturur.",
     accent: "#5a3420",
+    rgb: "90,52,32",
+    tilt: -3,
   },
   {
     name: "Coffea Canephora",
@@ -18,6 +20,8 @@ const SPECIES = [
     tagline: "Yüksek kafein, güçlü gövde",
     desc: "Yüksek kafeinli ve hastalıklara dirençli ana tür; sert ve dolgun bir profil sunar.",
     accent: "#7a2d1f",
+    rgb: "122,45,31",
+    tilt: 2,
   },
   {
     name: "Coffea Liberica",
@@ -25,13 +29,17 @@ const SPECIES = [
     tagline: "İri çekirdek, isli aroma",
     desc: "Filipinler ve Malezya'da yetişir; çok büyük çekirdekli, isli/odunsu bir tür.",
     accent: "#3d5a3a",
+    rgb: "61,90,58",
+    tilt: -2,
   },
   {
     name: "Coffea Excelsa",
     common: "Excelsa",
     tagline: "Ekşimsi, meyvemsi profil",
     desc: "Botanik olarak Liberica'nın bir alt türü kabul edilir; tart ve meyvemsi notalar taşır.",
-    accent: "#7a2d1f",
+    accent: "#8a4a2a",
+    rgb: "138,74,42",
+    tilt: 3,
   },
 ];
 
@@ -105,14 +113,35 @@ export default function HomePage() {
         <section>
           <h2 className="text-xl font-semibold mb-2 text-[var(--color-coffee)]">Kahve Türleri</h2>
           <p className="text-sm text-gray-500 mb-5">Borsada işlem gören başlıca çiğ kahve türleri</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+
+          <div className="wood-panel">
+            <div className="wood-panel-rule" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 py-8 px-4">
+              {SPECIES.map((s) => (
+                <div key={s.common} className="flex flex-col items-center gap-4 group">
+                  <div
+                    className="bean-bowl"
+                    style={{
+                      backgroundImage: `linear-gradient(rgba(${s.rgb},0.42), rgba(${s.rgb},0.42)), url(/coffee-beans-bg.jpg)`,
+                    }}
+                    title={s.desc}
+                  />
+                  <div className="kraft-tag" style={{ transform: `rotate(${s.tilt}deg)` }}>
+                    {s.common}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="wood-panel-rule" />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-6">
             {SPECIES.map((s) => (
-              <div key={s.common} className="card text-center">
-                <div className="w-10 h-1 rounded-full mx-auto mb-4" style={{ background: s.accent }} />
-                <p className="font-semibold" style={{ color: s.accent }}>
+              <div key={s.common} className="text-center">
+                <p className="font-semibold text-sm" style={{ color: s.accent }}>
                   {s.name}
                 </p>
-                <p className="text-xs text-[var(--text-tertiary)] mb-2">{s.tagline}</p>
+                <p className="text-xs text-[var(--text-tertiary)] mb-1">{s.tagline}</p>
                 <p className="text-xs text-[var(--text-secondary)]">{s.desc}</p>
               </div>
             ))}
