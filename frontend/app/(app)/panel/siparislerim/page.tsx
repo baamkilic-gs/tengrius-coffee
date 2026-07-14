@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { api, getOrganization } from "../../../../lib/api";
+import { formatNumber } from "../../../../lib/format";
 
 interface Order {
   id: string;
@@ -23,6 +24,8 @@ export default function MyOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [buyForm, setBuyForm] = useState({ quantity_tons: "", unit_price: "" });
   const [buyError, setBuyError] = useState<string | null>(null);
+  const [buySuccess, setBuySuccess] = useState<string | null>(null);
+  const [buying, setBuying] = useState(false);
   const searchParams = useSearchParams();
   const buyProductId = searchParams.get("buy");
   const org = getOrganization();
@@ -40,6 +43,8 @@ export default function MyOrdersPage() {
   const submitPurchase = async (e: React.FormEvent) => {
     e.preventDefault();
     setBuyError(null);
+    setBuySuccess(null);
+    setBuying(true);
     const res = await api("/orders", {
       method: "POST",
       body: JSON.stringify({
@@ -53,11 +58,13 @@ export default function MyOrdersPage() {
       const order = await res.json();
       await api(`/payments/bank-transfer/${order.id}/notify`, { method: "POST" });
       setBuyForm({ quantity_tons: "", unit_price: "" });
+      setBuySuccess("Sipariş oluşturuldu.");
       load();
     } else {
       const err = await res.json().catch(() => ({}));
       setBuyError(err.message ?? "Sipariş oluşturulamadı");
     }
+    setBuying(false);
   };
 
   const confirmPayment = async (id: string) => {
@@ -98,8 +105,9 @@ export default function MyOrdersPage() {
             />
           </div>
           {buyError && <p className="text-sm text-[var(--error)]">{buyError}</p>}
-          <button type="submit" className="btn btn-primary">
-            Siparişi Oluştur
+          {buySuccess && <p className="text-sm text-[var(--success)]">{buySuccess}</p>}
+          <button type="submit" disabled={buying} className="btn btn-primary">
+            {buying ? "Oluşturuluyor…" : "Siparişi Oluştur"}
           </button>
         </form>
       )}
@@ -125,9 +133,9 @@ export default function MyOrdersPage() {
               {orders.map((o) => (
                 <tr key={o.id} className="border-b border-[var(--border)]">
                   <td className="py-2">{o.product.title}</td>
-                  <td className="py-2">{Math.round((o.quantity_kg / 1000) * 1000) / 1000}</td>
+                  <td className="py-2">{formatNumber(o.quantity_kg / 1000, 1)}</td>
                   <td className="py-2">
-                    {o.total_amount} {o.currency}
+                    {formatNumber(o.total_amount)} {o.currency}
                   </td>
                   <td className="py-2">{o.payment_status}</td>
                   <td className="py-2">{o.order_status}</td>

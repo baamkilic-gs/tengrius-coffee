@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { api } from "../../../../lib/api";
+import { formatNumber } from "../../../../lib/format";
+import { COUNTRIES } from "../../../../lib/countries";
 
 interface ContainerType {
   id: string;
@@ -39,6 +41,8 @@ export default function MyProductsPage() {
   const [containerTypes, setContainerTypes] = useState<ContainerType[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const load = () => {
@@ -60,6 +64,8 @@ export default function MyProductsPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
+    setSubmitting(true);
     const res = await api("/products", {
       method: "POST",
       body: JSON.stringify({
@@ -73,8 +79,10 @@ export default function MyProductsPage() {
         quantity_kg: Number(form.quantity_tons) * 1000,
       }),
     });
+    setSubmitting(false);
     if (res.ok) {
       setForm(emptyForm);
+      setSuccess("Ürün eklendi.");
       load();
     } else {
       const err = await res.json().catch(() => ({}));
@@ -96,13 +104,19 @@ export default function MyProductsPage() {
             required
             className="input"
           />
-          <input
-            placeholder="Ülke"
+          <select
             value={form.country}
             onChange={(e) => setForm({ ...form, country: e.target.value })}
             required
             className="input"
-          />
+          >
+            <option value="">Ülke seçin</option>
+            {COUNTRIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
           <select
             value={form.bean_type}
             onChange={(e) => setForm({ ...form, bean_type: e.target.value })}
@@ -174,8 +188,9 @@ export default function MyProductsPage() {
         </div>
 
         {error && <p className="text-sm text-[var(--error)]">{error}</p>}
-        <button type="submit" className="btn btn-primary">
-          Ekle
+        {success && <p className="text-sm text-[var(--success)]">{success}</p>}
+        <button type="submit" disabled={submitting} className="btn btn-primary">
+          {submitting ? "Ekleniyor…" : "Ekle"}
         </button>
       </form>
 
@@ -203,15 +218,15 @@ export default function MyProductsPage() {
                     {p.country} / {p.bean_type}
                   </td>
                   <td className="py-2">
-                    {p.price_per_kg} {p.currency}
+                    {formatNumber(p.price_per_kg, 4)} {p.currency}
                   </td>
                   <td className="py-2">
-                    {p.price_per_ton} {p.currency}
+                    {formatNumber(p.price_per_ton)} {p.currency}
                   </td>
                   <td className="py-2">
-                    {p.price_per_container != null ? `${p.price_per_container} ${p.currency}` : "—"}
+                    {p.price_per_container != null ? `${formatNumber(p.price_per_container)} ${p.currency}` : "—"}
                   </td>
-                  <td className="py-2">{p.quantity_tons}</td>
+                  <td className="py-2">{formatNumber(p.quantity_tons, 1)}</td>
                   <td className="py-2">{p.status}</td>
                 </tr>
               ))}

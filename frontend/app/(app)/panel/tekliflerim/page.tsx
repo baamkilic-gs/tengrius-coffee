@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api, getOrganization } from "../../../../lib/api";
+import { formatNumber } from "../../../../lib/format";
 
 interface Offer {
   id: string;
@@ -54,7 +55,8 @@ export default function MyOffersPage() {
               <div>
                 <p className="font-medium">{o.product.title}</p>
                 <p className="text-[var(--text-secondary)]">
-                  {o.buyer?.name} — {o.offer_price} USD/kg × {o.quantity_kg} kg — {o.status}
+                  {o.buyer?.name} — {formatNumber(o.offer_price, 4)} USD/kg × {formatNumber(o.quantity_kg, 0)} kg —{" "}
+                  {o.status}
                 </p>
               </div>
               {o.status === "PENDING" && (
@@ -84,7 +86,7 @@ export default function MyOffersPage() {
             <div key={o.id} className="card text-sm">
               <p className="font-medium">{o.product.title}</p>
               <p className="text-[var(--text-secondary)]">
-                {o.offer_price} USD/kg × {o.quantity_kg} kg — {o.status}
+                {formatNumber(o.offer_price, 4)} USD/kg × {formatNumber(o.quantity_kg, 0)} kg — {o.status}
               </p>
             </div>
           ))

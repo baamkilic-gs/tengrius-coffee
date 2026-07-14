@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { api } from "../../../../lib/api";
+import { formatNumber } from "../../../../lib/format";
+import { COUNTRIES } from "../../../../lib/countries";
 
 interface Alert {
   id: string;
@@ -20,6 +22,8 @@ export default function PriceAlertsPage() {
   const [targetPrice, setTargetPrice] = useState("");
   const [direction, setDirection] = useState("BELOW");
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const load = () => {
@@ -35,12 +39,16 @@ export default function PriceAlertsPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
+    setSubmitting(true);
     const res = await api("/price-alerts", {
       method: "POST",
       body: JSON.stringify({ country, bean_type: beanType, target_price: Number(targetPrice), direction }),
     });
+    setSubmitting(false);
     if (res.ok) {
       setTargetPrice("");
+      setSuccess("Alarm kuruldu.");
       load();
     } else {
       const err = await res.json().catch(() => ({}));
@@ -60,13 +68,14 @@ export default function PriceAlertsPage() {
       <form onSubmit={submit} className="card space-y-3">
         <h2 className="font-semibold">Yeni Alarm</h2>
         <div className="grid grid-cols-2 gap-3">
-          <input
-            placeholder="Ülke"
-            value={country}
-            onChange={(e) => setCountry(e.target.value)}
-            required
-            className="input"
-          />
+          <select value={country} onChange={(e) => setCountry(e.target.value)} required className="input">
+            <option value="">Ülke seçin</option>
+            {COUNTRIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
           <select value={beanType} onChange={(e) => setBeanType(e.target.value)} className="input">
             <option>Arabica</option>
             <option>Robusta</option>
@@ -89,8 +98,9 @@ export default function PriceAlertsPage() {
           </select>
         </div>
         {error && <p className="text-sm text-[var(--error)]">{error}</p>}
-        <button type="submit" className="btn btn-primary">
-          Alarm Kur
+        {success && <p className="text-sm text-[var(--success)]">{success}</p>}
+        <button type="submit" disabled={submitting} className="btn btn-primary">
+          {submitting ? "Kuruluyor…" : "Alarm Kur"}
         </button>
       </form>
 
@@ -103,7 +113,8 @@ export default function PriceAlertsPage() {
           {alerts.map((a) => (
             <div key={a.id} className="card flex items-center justify-between text-sm">
               <span>
-                {a.country} / {a.bean_type} — {a.direction === "BELOW" ? "≤" : "≥"} {a.target_price} USD/kg
+                {a.country} / {a.bean_type} — {a.direction === "BELOW" ? "≤" : "≥"}{" "}
+                {formatNumber(a.target_price, 4)} USD/kg
                 {!a.is_active && " (tetiklendi)"}
               </span>
               <button onClick={() => remove(a.id)} className="text-[var(--error)] text-xs hover:underline">

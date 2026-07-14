@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "../../lib/api";
+import { formatNumber } from "../../lib/format";
 
 const SPECIES = [
   {
@@ -147,10 +148,10 @@ export default function HomePage() {
                     {p.country} · {p.bean_type}
                   </p>
                   <p className="mt-3 text-[var(--color-coffee)] font-semibold">
-                    {p.price_per_kg} {p.currency} / kg
+                    {formatNumber(p.price_per_kg, 4)} {p.currency} / kg
                   </p>
                   <p className="text-xs text-[var(--text-tertiary)] mt-1">
-                    {p.seller.name} · Stok: {p.quantity_tons} ton
+                    {p.seller.name} · Stok: {formatNumber(p.quantity_tons, 1)} ton
                   </p>
                 </Link>
               ))}
@@ -219,7 +220,7 @@ export default function HomePage() {
                       <td className="py-3 px-4">{item.country}</td>
                       <td className="py-3 px-4">{item.bean_type}</td>
                       <td className="py-3 px-4 font-semibold text-[var(--color-coffee)]">
-                        {item.avg_price_per_kg} {item.currency}
+                        {formatNumber(item.avg_price_per_kg, 4)} {item.currency}
                       </td>
                       <td className="py-3 px-4">{item.listing_count}</td>
                     </tr>
@@ -261,7 +262,7 @@ export default function HomePage() {
                     {s.origin_country} · {s.bean_type}
                   </p>
                   <p className="mt-2 text-sm text-[var(--color-coffee)]">
-                    {s.quantity_tons} ton — {s.buyer_label}
+                    {formatNumber(s.quantity_tons, 1)} ton — {s.buyer_label}
                   </p>
                   <p className="text-xs text-[var(--text-tertiary)] mt-1">
                     {new Date(s.completed_at).toLocaleDateString("tr-TR")}

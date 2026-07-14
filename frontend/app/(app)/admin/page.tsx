@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, getUser } from "../../../lib/api";
+import { formatNumber } from "../../../lib/format";
 
 interface ContainerType {
   id: string;
@@ -20,6 +21,8 @@ export default function AdminPage() {
   const [containerTypes, setContainerTypes] = useState<ContainerType[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
 
   const loadContainerTypes = () => {
@@ -46,6 +49,8 @@ export default function AdminPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
+    setSubmitting(true);
     const res = await api("/container-types", {
       method: "POST",
       body: JSON.stringify({
@@ -55,8 +60,10 @@ export default function AdminPage() {
         bag_weight_kg: form.bag_weight_kg ? Number(form.bag_weight_kg) : undefined,
       }),
     });
+    setSubmitting(false);
     if (res.ok) {
       setForm(emptyForm);
+      setSuccess("Konteyner tipi eklendi.");
       loadContainerTypes();
     } else {
       const err = await res.json().catch(() => ({}));
@@ -119,8 +126,9 @@ export default function AdminPage() {
             />
           </div>
           {error && <p className="text-sm text-[var(--error)]">{error}</p>}
-          <button type="submit" className="btn btn-primary">
-            Ekle
+          {success && <p className="text-sm text-[var(--success)]">{success}</p>}
+          <button type="submit" disabled={submitting} className="btn btn-primary">
+            {submitting ? "Ekleniyor…" : "Ekle"}
           </button>
         </form>
 
@@ -128,7 +136,7 @@ export default function AdminPage() {
           {containerTypes.map((ct) => (
             <div key={ct.id} className="card flex items-center justify-between text-sm">
               <span>
-                <strong>{ct.name}</strong> — {ct.capacity_kg} kg ({ct.capacity_kg / 1000} ton)
+                <strong>{ct.name}</strong> — {formatNumber(ct.capacity_kg, 0)} kg ({ct.capacity_kg / 1000} ton)
                 {ct.bag_count ? ` · ${ct.bag_count} çuval x ${ct.bag_weight_kg}kg` : ""}
                 {!ct.is_active && " (pasif)"}
               </span>

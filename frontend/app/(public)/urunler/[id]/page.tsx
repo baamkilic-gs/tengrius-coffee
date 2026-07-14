@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api, getUser, getOrganization } from "../../../../lib/api";
+import { formatNumber } from "../../../../lib/format";
 
 interface ProductDetail {
   id: string;
@@ -31,6 +32,7 @@ export default function ProductDetailPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [offerPrice, setOfferPrice] = useState("");
   const [offerQtyTons, setOfferQtyTons] = useState("");
+  const [sendingOffer, setSendingOffer] = useState(false);
 
   const user = getUser();
   const org = getOrganization();
@@ -48,6 +50,7 @@ export default function ProductDetailPage() {
   const sendOffer = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
+    setSendingOffer(true);
     const res = await api("/offers", {
       method: "POST",
       body: JSON.stringify({
@@ -56,6 +59,7 @@ export default function ProductDetailPage() {
         quantity_kg: Number(offerQtyTons) * 1000,
       }),
     });
+    setSendingOffer(false);
     if (res.ok) {
       setMessage("Teklifiniz gönderildi");
       setOfferPrice("");
@@ -82,22 +86,22 @@ export default function ProductDetailPage() {
       <div className="grid grid-cols-2 gap-4 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-[20px] p-5">
         <div>Kg Fiyatı</div>
         <div className="font-semibold">
-          {product.price_per_kg} {product.currency}
+          {formatNumber(product.price_per_kg, 4)} {product.currency}
         </div>
         <div>Ton Fiyatı</div>
         <div className="font-semibold">
-          {product.price_per_ton} {product.currency}
+          {formatNumber(product.price_per_ton)} {product.currency}
         </div>
         {product.price_per_container != null && (
           <>
             <div>Konteyner Fiyatı{product.containerType ? ` (${product.containerType.name})` : ""}</div>
             <div className="font-semibold">
-              {product.price_per_container} {product.currency}
+              {formatNumber(product.price_per_container)} {product.currency}
             </div>
           </>
         )}
         <div>Stok</div>
-        <div>{product.quantity_tons} ton</div>
+        <div>{formatNumber(product.quantity_tons, 1)} ton</div>
         {product.harvest_year && (
           <>
             <div>Hasat Yılı</div>
@@ -170,8 +174,8 @@ export default function ProductDetailPage() {
             />
           </div>
           <div className="flex gap-3">
-            <button type="submit" className="btn btn-primary">
-              Teklif Gönder
+            <button type="submit" disabled={sendingOffer} className="btn btn-primary">
+              {sendingOffer ? "Gönderiliyor…" : "Teklif Gönder"}
             </button>
             <button
               type="button"

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api, setSession } from "../../../lib/api";
+import { COUNTRIES } from "../../../lib/countries";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -62,12 +63,14 @@ export default function RegisterPage() {
             <option value="BUYER">Çiğ kahve alıcısı</option>
             <option value="SELLER">Satıcı</option>
           </select>
-          <input
-            placeholder="Ülke"
-            value={country}
-            onChange={(e) => setCountry(e.target.value)}
-            className="input w-full"
-          />
+          <select value={country} onChange={(e) => setCountry(e.target.value)} className="input w-full">
+            <option value="">Ülke seçin</option>
+            {COUNTRIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
 
           <hr className="border-[var(--border)] my-2" />
 

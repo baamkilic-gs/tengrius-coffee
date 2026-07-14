@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "../../../lib/api";
+import { formatNumber } from "../../../lib/format";
+import { COUNTRIES } from "../../../lib/countries";
+
+const BEAN_TYPES = ["Arabica", "Robusta", "Liberica", "Excelsa", "Blend"];
 
 interface Product {
   id: string;
@@ -46,40 +50,44 @@ export default function ProductsListPage() {
         }}
         className="flex gap-3"
       >
-        <input
-          placeholder="Ülke"
-          value={country}
-          onChange={(e) => setCountry(e.target.value)}
-          className="input"
-        />
-        <input
-          placeholder="Tür (Arabica/Robusta/Liberica/Excelsa/Blend)"
-          value={beanType}
-          onChange={(e) => setBeanType(e.target.value)}
-          className="input"
-        />
+        <select value={country} onChange={(e) => setCountry(e.target.value)} className="input">
+          <option value="">Tüm ülkeler</option>
+          {COUNTRIES.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+        <select value={beanType} onChange={(e) => setBeanType(e.target.value)} className="input">
+          <option value="">Tüm türler</option>
+          {BEAN_TYPES.map((b) => (
+            <option key={b} value={b}>
+              {b}
+            </option>
+          ))}
+        </select>
         <button type="submit" className="btn btn-primary">
           Filtrele
         </button>
       </form>
 
       {loading ? (
-        <p className="text-gray-500">Yükleniyor…</p>
+        <p className="text-[var(--text-secondary)]">Yükleniyor…</p>
       ) : products.length === 0 ? (
-        <p className="text-gray-500">Ürün bulunamadı</p>
+        <p className="text-[var(--text-secondary)]">Ürün bulunamadı</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {products.map((p) => (
             <Link key={p.id} href={`/urunler/${p.id}`} className="card block">
               <p className="font-medium">{p.title}</p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-[var(--text-secondary)]">
                 {p.country} · {p.bean_type}
               </p>
               <p className="mt-3 text-[var(--color-coffee)] font-semibold">
-                {p.price_per_kg} {p.currency} / kg
+                {formatNumber(p.price_per_kg, 4)} {p.currency} / kg
               </p>
               <p className="text-xs text-[var(--text-tertiary)] mt-1">
-                {p.seller.name} · Stok: {p.quantity_tons} ton
+                {p.seller.name} · Stok: {formatNumber(p.quantity_tons, 1)} ton
               </p>
             </Link>
           ))}
