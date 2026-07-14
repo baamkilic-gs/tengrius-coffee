@@ -23,8 +23,11 @@ export default function Nav() {
 
   return (
     <header className="bg-[var(--color-coffee)] text-[var(--color-cream)] px-6 py-3 flex items-center justify-between">
-      <Link href="/" className="font-semibold text-lg text-[var(--color-gold-light)] font-[var(--font-heading)]">
-        Tengrius Coffee
+      <Link href="/" className="flex items-baseline gap-2">
+        <span className="font-semibold text-lg text-[var(--color-gold-light)] font-[var(--font-heading)]">
+          Tengrius
+        </span>
+        <span className="text-xs text-[var(--color-cream)]/60 hidden sm:inline">Kahve Borsası</span>
       </Link>
       <nav className="flex items-center gap-4 text-sm">
         {user && org ? (

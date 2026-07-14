@@ -4,7 +4,7 @@ import Nav from "./components/Nav";
 import RateTicker from "./components/RateTicker";
 
 export const metadata: Metadata = {
-  title: "Tengrius Coffee",
+  title: "Tengrius | Çiğ Kahve Borsası",
   description: "Çiğ kahve alım-satım borsası",
 };
 

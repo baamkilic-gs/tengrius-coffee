@@ -103,21 +103,18 @@ export default function HomePage() {
 
   return (
     <div>
-      {/* Hero — kompakt, sayfanın yaklaşık yarısı yerine kısa bir tanıtım şeridi */}
-      <section className="hero-gradient text-[var(--color-cream)] overflow-hidden flex items-center min-h-[46vh]">
-        <div className="max-w-3xl mx-auto px-6 py-10 text-center space-y-4">
+      {/* Hero — daraltıldı: sayfa açılır açılmaz İlanlar bölümü görünsün */}
+      <section className="hero-gradient text-[var(--color-cream)] overflow-hidden flex items-center min-h-[26vh]">
+        <div className="max-w-3xl mx-auto px-6 py-5 text-center space-y-2">
           <p className="enter-fade-up uppercase tracking-[0.2em] text-xs text-[var(--color-gold-light)] font-semibold">
             Çiğ Kahve Pazar Yeri
           </p>
           <h1
-            className="enter-fade-up text-3xl md:text-4xl font-semibold leading-[1.15]"
+            className="enter-fade-up text-2xl md:text-3xl font-semibold leading-[1.15]"
             style={{ textShadow: "0 2px 10px rgba(0,0,0,0.18)" }}
           >
             Dünyanın kahvesi, tek borsada buluşuyor
           </h1>
-          <p className="enter-fade-up text-[var(--color-cream)]/80 max-w-md mx-auto text-sm">
-            Alıcı ve satıcıları aynı platformda buluşturan çift taraflı çiğ kahve pazar yeri.
-          </p>
           <div className="enter-fade-up flex flex-wrap gap-3 justify-center pt-1">
             <Link href="/urunler" className="btn btn-primary">
               Ürünlere Göz At
