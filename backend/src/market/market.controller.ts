@@ -96,8 +96,10 @@ export class MarketController {
 
   /**
    * GET /market/rates — kayan yazı için referans kurlar (USD/TRY, EUR/TRY, gram altın, BTC/USD).
-   * Üçüncü parti API'ler (Frankfurter/CoinGecko/gold-api.com) ücretsiz ve anahtarsız;
-   * biri başarısız olursa o alan null döner, diğerleri etkilenmez. 5dk önbelleklenir.
+   * Üçüncü parti API'ler (Frankfurter/Coinbase/gold-api.com) ücretsiz ve anahtarsız;
+   * biri başarısız olursa o alan için ÖNCEKİ önbellekteki değer korunur (tamamen boş
+   * göstermek yerine) — Render gibi paylaşılan IP'lerde bazı API'ler (ör. CoinGecko)
+   * ara sıra rate-limit'e takılabiliyor. 5dk önbelleklenir.
    */
   @Public()
   @Get('rates')
@@ -108,23 +110,25 @@ export class MarketController {
 
     const [fx, btc, gold] = await Promise.allSettled([
       fetch('https://api.frankfurter.app/latest?from=USD&to=TRY,EUR').then((r) => r.json()),
-      fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd').then((r) => r.json()),
+      fetch('https://api.coinbase.com/v2/prices/BTC-USD/spot').then((r) => r.json()),
       fetch('https://api.gold-api.com/price/XAU').then((r) => r.json()),
     ]);
 
     const usdTry = fx.status === 'fulfilled' ? Number(fx.value?.rates?.TRY) : null;
     const eurPerUsd = fx.status === 'fulfilled' ? Number(fx.value?.rates?.EUR) : null;
     const eurTry = usdTry && eurPerUsd ? usdTry / eurPerUsd : null;
-    const btcUsd = btc.status === 'fulfilled' ? Number(btc.value?.bitcoin?.usd) : null;
+    const btcUsd = btc.status === 'fulfilled' ? Number(btc.value?.data?.amount) : null;
     const goldUsdOz = gold.status === 'fulfilled' ? Number(gold.value?.price) : null;
     const goldTryGram = goldUsdOz && usdTry ? (goldUsdOz / GRAM_PER_OUNCE) * usdTry : null;
 
+    const prev = this.ratesCache;
     const payload: RatesPayload = {
-      usd_try: Number.isFinite(usdTry) ? usdTry : null,
-      eur_try: eurTry && Number.isFinite(eurTry) ? Math.round(eurTry * 100) / 100 : null,
-      gold_usd_oz: Number.isFinite(goldUsdOz) ? goldUsdOz : null,
-      gold_try_gram: goldTryGram && Number.isFinite(goldTryGram) ? Math.round(goldTryGram * 100) / 100 : null,
-      btc_usd: Number.isFinite(btcUsd) ? btcUsd : null,
+      usd_try: Number.isFinite(usdTry) ? usdTry : (prev?.usd_try ?? null),
+      eur_try: eurTry && Number.isFinite(eurTry) ? Math.round(eurTry * 100) / 100 : (prev?.eur_try ?? null),
+      gold_usd_oz: Number.isFinite(goldUsdOz) ? goldUsdOz : (prev?.gold_usd_oz ?? null),
+      gold_try_gram:
+        goldTryGram && Number.isFinite(goldTryGram) ? Math.round(goldTryGram * 100) / 100 : (prev?.gold_try_gram ?? null),
+      btc_usd: Number.isFinite(btcUsd) ? btcUsd : (prev?.btc_usd ?? null),
       updated_at: new Date().toISOString(),
     };
 
