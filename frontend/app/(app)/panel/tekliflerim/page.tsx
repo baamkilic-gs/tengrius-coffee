@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { api, getOrganization } from "../../../../lib/api";
 import { formatNumber } from "../../../../lib/format";
 
@@ -80,7 +81,13 @@ export default function MyOffersPage() {
       <section className="space-y-2">
         <h2 className="font-semibold">Verdiğim Teklifler</h2>
         {sent.length === 0 ? (
-          <p className="text-[var(--text-secondary)] text-sm">Henüz teklif vermediniz</p>
+          <p className="text-[var(--text-secondary)] text-sm">
+            Henüz teklif vermediniz — teklif vermek için bir{" "}
+            <Link href="/urunler" className="link">
+              ürün sayfasına
+            </Link>{" "}
+            gidip "Teklif Ver" formunu kullanın (Premium üyelik gerekir).
+          </p>
         ) : (
           sent.map((o) => (
             <div key={o.id} className="card text-sm">

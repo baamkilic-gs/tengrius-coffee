@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { api, getOrganization } from "../../../../lib/api";
 import { formatNumber } from "../../../../lib/format";
 
@@ -115,7 +116,13 @@ export default function MyOrdersPage() {
       {loading ? (
         <p className="text-[var(--text-secondary)]">Yükleniyor…</p>
       ) : orders.length === 0 ? (
-        <p className="text-[var(--text-secondary)] text-sm">Henüz siparişiniz yok</p>
+        <p className="text-[var(--text-secondary)] text-sm">
+          Henüz siparişiniz yok — satın almak için bir{" "}
+          <Link href="/urunler" className="link">
+            ürün sayfasına
+          </Link>{" "}
+          gidip "Satın Al" butonunu kullanın (Premium üyelik gerekir).
+        </p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse">

@@ -148,6 +148,13 @@ export default function ProductDetailPage() {
         </p>
       )}
 
+      {user && isOwnProduct && (
+        <p className="text-sm text-[var(--text-tertiary)]">
+          Bu ürün size ait olduğu için teklif verme/satın alma seçenekleri gösterilmiyor — başka bir
+          organizasyonun ürününü görüntülediğinizde bu bölümde "Teklif Ver" ve "Satın Al" seçenekleri çıkar.
+        </p>
+      )}
+
       {user && isPremium && !isOwnProduct && (
         <form
           onSubmit={sendOffer}
