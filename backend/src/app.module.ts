@@ -15,6 +15,7 @@ import { PriceAlertsService } from './price-alerts/price-alerts.service';
 import { OrdersController } from './orders/orders.controller';
 import { PaymentsController } from './payments/payments.controller';
 import { MarketController } from './market/market.controller';
+import { ContainerTypesController } from './container-types/container-types.controller';
 import { NotificationsService } from './notifications/notifications.service';
 import { PrismaService } from './prisma.service';
 
@@ -40,6 +41,7 @@ import { PrismaService } from './prisma.service';
     OrdersController,
     PaymentsController,
     MarketController,
+    ContainerTypesController,
   ],
   providers: [
     PrismaService,

@@ -49,13 +49,13 @@ export class PriceAlertsService {
   }): Promise<number | null> {
     if (alert.product_id) {
       const product = await this.prisma.product.findUnique({ where: { id: alert.product_id } });
-      return product ? Number(product.price_per_unit) : null;
+      return product ? Number(product.price_per_kg) : null;
     }
     const product = await this.prisma.product.findFirst({
       where: { status: 'ACTIVE', country: alert.country ?? undefined, bean_type: alert.bean_type ?? undefined },
       orderBy: { created_at: 'desc' },
     });
-    return product ? Number(product.price_per_unit) : null;
+    return product ? Number(product.price_per_kg) : null;
   }
 
   private async evaluate(

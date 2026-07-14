@@ -54,17 +54,17 @@ export class OffersController {
   @UseGuards(PremiumGuard)
   @Post()
   async create(@Req() req: any, @Body() body: any) {
-    if (!['BUYER', 'BOTH'].includes(req.user.org_type)) {
+    if (!['BUYER', 'BOTH', 'ROASTER'].includes(req.user.org_type)) {
       throw new ForbiddenException('Teklif verme yalnızca alıcı organizasyonlarına açıktır');
     }
 
     const offerPrice = Number(body.offer_price);
-    const quantity = Number(body.quantity);
+    const quantityKg = Number(body.quantity_kg);
     if (!Number.isFinite(offerPrice) || offerPrice <= 0) {
-      throw new BadRequestException('Geçerli bir teklif fiyatı girin');
+      throw new BadRequestException('Geçerli bir teklif fiyatı girin (kg başına)');
     }
-    if (!Number.isInteger(quantity) || quantity <= 0) {
-      throw new BadRequestException('Geçerli bir miktar girin');
+    if (!Number.isFinite(quantityKg) || quantityKg <= 0) {
+      throw new BadRequestException('Geçerli bir miktar (kg) girin');
     }
 
     const product = await this.prisma.product.findUnique({ where: { id: body.product_id } });
@@ -80,7 +80,7 @@ export class OffersController {
         product_id: product.id,
         buyer_org_id: req.user.organization_id,
         offer_price: offerPrice,
-        quantity,
+        quantity_kg: quantityKg,
         message: body.message ?? null,
       },
     });

@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 
-const ORG_TYPES = ['BUYER', 'SELLER', 'BOTH'];
+const ORG_TYPES = ['BUYER', 'SELLER', 'BOTH', 'ROASTER'];
 
 const orgView = (o: any) => ({
   id: o.id,
@@ -51,7 +51,7 @@ export class OrganizationsController {
     if (body.type !== undefined) {
       const type = String(body.type).toUpperCase();
       if (!ORG_TYPES.includes(type)) {
-        throw new BadRequestException('Tip BUYER, SELLER veya BOTH olmalıdır');
+        throw new BadRequestException('Tip BUYER, SELLER, BOTH veya ROASTER olmalıdır');
       }
       data.type = type;
     }

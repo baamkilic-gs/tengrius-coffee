@@ -13,7 +13,7 @@ import * as bcrypt from 'bcryptjs';
 import { Public } from './public.decorator';
 import { PrismaService } from '../prisma.service';
 
-const ORG_TYPES = ['BUYER', 'SELLER', 'BOTH'];
+const ORG_TYPES = ['BUYER', 'SELLER', 'BOTH', 'ROASTER'];
 
 // Yanıtlara şifre hash'i asla dahil edilmez
 const userView = (u: any) => ({
@@ -71,7 +71,7 @@ export class AuthController {
       throw new BadRequestException('Firma/organizasyon adı zorunludur');
     }
     if (!ORG_TYPES.includes(orgType)) {
-      throw new BadRequestException('Organizasyon tipi BUYER, SELLER veya BOTH olmalıdır');
+      throw new BadRequestException('Organizasyon tipi BUYER, SELLER, BOTH veya ROASTER olmalıdır');
     }
 
     const exists = await this.prisma.user.findUnique({ where: { email } });

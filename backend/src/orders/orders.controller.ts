@@ -62,22 +62,22 @@ export class OrdersController {
       );
     }
 
-    const quantity = Number(body.quantity);
-    if (!Number.isInteger(quantity) || quantity <= 0) {
-      throw new BadRequestException('Geçerli bir miktar girin');
+    const quantityKg = Number(body.quantity_kg);
+    if (!Number.isFinite(quantityKg) || quantityKg <= 0) {
+      throw new BadRequestException('Geçerli bir miktar (kg) girin');
     }
 
     const product = await this.prisma.product.findUnique({ where: { id: body.product_id } });
     if (!product || product.status !== 'ACTIVE') {
       throw new NotFoundException('Ürün bulunamadı veya artık aktif değil');
     }
-    if (quantity > product.quantity_available) {
+    if (quantityKg > product.quantity_kg) {
       throw new BadRequestException('Talep edilen miktar mevcut stoktan fazla');
     }
 
-    const unitPrice = body.unit_price !== undefined ? Number(body.unit_price) : Number(product.price_per_unit);
+    const unitPrice = body.unit_price !== undefined ? Number(body.unit_price) : Number(product.price_per_kg);
     if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
-      throw new BadRequestException('Geçerli bir birim fiyat girin');
+      throw new BadRequestException('Geçerli bir kg fiyatı girin');
     }
 
     const order = await this.prisma.order.create({
@@ -85,9 +85,9 @@ export class OrdersController {
         product_id: product.id,
         buyer_org_id: req.user.organization_id,
         seller_org_id: product.seller_org_id,
-        quantity,
+        quantity_kg: quantityKg,
         unit_price: unitPrice,
-        total_amount: unitPrice * quantity,
+        total_amount: unitPrice * quantityKg,
         currency: product.currency,
         payment_method: paymentMethod as any,
       },

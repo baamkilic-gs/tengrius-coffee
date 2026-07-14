@@ -2,6 +2,7 @@ import { Controller, Get, Query } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { Public } from '../auth/public.decorator';
 import { decimalFields } from '../common/serialize';
+import { productView, productInclude } from '../common/product-view';
 
 const RATES_CACHE_TTL_MS = 5 * 60 * 1000; // dış API'leri her istekte yormamak için 5dk önbellek
 const GRAM_PER_OUNCE = 31.1034768;
@@ -34,20 +35,20 @@ export class MarketController {
         where: { status: 'ACTIVE', is_featured: true },
         take: 12,
         orderBy: { created_at: 'desc' },
-        include: { seller: { select: { name: true, country: true, verified: true } } },
+        include: productInclude,
       }),
       this.prisma.product.findMany({
         where: { status: 'ACTIVE' },
-        select: { country: true, bean_type: true, price_per_unit: true, currency: true },
+        select: { country: true, bean_type: true, price_per_kg: true, currency: true },
       }),
     ]);
 
-    // Ülke + tür kırılımında ortalama fiyat — basit "borsa fiyat listesi"
+    // Ülke + tür kırılımında ortalama kg fiyatı — basit "borsa fiyat listesi"
     const buckets = new Map<string, { country: string; bean_type: string; currency: string; total: number; count: number }>();
     for (const p of active) {
       const key = `${p.country}|${p.bean_type}|${p.currency}`;
       const bucket = buckets.get(key) ?? { country: p.country, bean_type: p.bean_type, currency: p.currency, total: 0, count: 0 };
-      bucket.total += Number(p.price_per_unit);
+      bucket.total += Number(p.price_per_kg);
       bucket.count += 1;
       buckets.set(key, bucket);
     }
@@ -55,14 +56,42 @@ export class MarketController {
       country: b.country,
       bean_type: b.bean_type,
       currency: b.currency,
-      avg_price: Math.round((b.total / b.count) * 100) / 100,
+      avg_price_per_kg: Math.round((b.total / b.count) * 10000) / 10000,
       listing_count: b.count,
     }));
 
     return {
-      featured: featured.map((p) => decimalFields(p, ['price_per_unit'])),
+      featured: featured.map(productView),
       price_list: priceList,
     };
+  }
+
+  /**
+   * GET /market/completed-sales — anasayfa "gerçekleşmiş satışlar" vitrini.
+   * Gerçek COMPLETED siparişler; rekabet hassasiyeti nedeniyle firma adı ve
+   * fiyat gösterilmez, yalnızca ülke/ürün/miktar/tarih anonim olarak sunulur.
+   */
+  @Public()
+  @Get('completed-sales')
+  async completedSales() {
+    const orders = await this.prisma.order.findMany({
+      where: { order_status: 'COMPLETED' },
+      take: 12,
+      orderBy: { created_at: 'desc' },
+      include: {
+        product: { select: { title: true, country: true, bean_type: true } },
+        buyer: { select: { country: true } },
+      },
+    });
+
+    return orders.map((o) => ({
+      product_title: o.product.title,
+      origin_country: o.product.country,
+      bean_type: o.product.bean_type,
+      quantity_tons: Math.round((o.quantity_kg / 1000) * 10) / 10,
+      buyer_label: o.buyer.country ? `${o.buyer.country} merkezli bir alıcı` : 'Bir alıcı',
+      completed_at: o.created_at,
+    }));
   }
 
   /**
