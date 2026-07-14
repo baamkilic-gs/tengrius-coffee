@@ -32,17 +32,19 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
 
   if (!checked) return null;
 
+  const canSell = !["BUYER", "ROASTER"].includes(org?.type ?? "");
+
   return (
     <div className="max-w-6xl mx-auto px-6 py-8 flex gap-8">
       <aside className="w-48 shrink-0 space-y-1">
-        {LINKS.filter((l) => l.href !== "/panel/urunlerim" || org?.type !== "BUYER").map((link) => (
+        {LINKS.filter((l) => l.href !== "/panel/urunlerim" || canSell).map((link) => (
           <Link
             key={link.href}
             href={link.href}
-            className={`block px-3 py-2 rounded text-sm ${
+            className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
               pathname === link.href
-                ? "bg-[var(--color-coffee)] text-white"
-                : "text-gray-600 hover:bg-gray-100"
+                ? "bg-[var(--color-coffee)] text-[var(--color-cream)]"
+                : "text-[var(--text-secondary)] hover:bg-[var(--surface-alt)]"
             }`}
           >
             {link.label}

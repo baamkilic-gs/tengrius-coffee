@@ -3,28 +3,40 @@
 import { useEffect, useState } from "react";
 import { api } from "../../../../lib/api";
 
+interface ContainerType {
+  id: string;
+  name: string;
+  capacity_kg: number;
+}
+
 interface Product {
   id: string;
   title: string;
   country: string;
   bean_type: string;
-  price_per_unit: number;
+  price_per_kg: number;
+  price_per_ton: number;
+  price_per_container: number | null;
   currency: string;
-  quantity_available: number;
+  quantity_tons: number;
   status: string;
+  containerType: ContainerType | null;
 }
 
 const emptyForm = {
   title: "",
   country: "",
   bean_type: "Arabica",
-  pricing_unit: "BAG",
-  price_per_unit: "",
-  quantity_available: "",
+  price_per_kg: "",
+  price_per_ton: "",
+  container_type_id: "",
+  price_per_container: "",
+  quantity_tons: "",
 };
 
 export default function MyProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [containerTypes, setContainerTypes] = useState<ContainerType[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,7 +49,13 @@ export default function MyProductsPage() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(load, []);
+  useEffect(() => {
+    load();
+    api("/container-types")
+      .then((res) => res.json())
+      .then(setContainerTypes)
+      .catch(() => setContainerTypes([]));
+  }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,9 +63,14 @@ export default function MyProductsPage() {
     const res = await api("/products", {
       method: "POST",
       body: JSON.stringify({
-        ...form,
-        price_per_unit: Number(form.price_per_unit),
-        quantity_available: Number(form.quantity_available),
+        title: form.title,
+        country: form.country,
+        bean_type: form.bean_type,
+        price_per_kg: Number(form.price_per_kg),
+        price_per_ton: form.price_per_ton ? Number(form.price_per_ton) : undefined,
+        container_type_id: form.container_type_id || undefined,
+        price_per_container: form.price_per_container ? Number(form.price_per_container) : undefined,
+        quantity_kg: Number(form.quantity_tons) * 1000,
       }),
     });
     if (res.ok) {
@@ -61,9 +84,9 @@ export default function MyProductsPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-bold text-[var(--color-coffee)]">Ürünlerim</h1>
+      <h1 className="text-2xl font-semibold text-[var(--color-coffee)]">Ürünlerim</h1>
 
-      <form onSubmit={submit} className="border border-gray-200 rounded-lg p-4 space-y-3">
+      <form onSubmit={submit} className="card space-y-3">
         <h2 className="font-semibold">Yeni Parti Ekle</h2>
         <div className="grid grid-cols-2 gap-3">
           <input
@@ -71,19 +94,19 @@ export default function MyProductsPage() {
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
             required
-            className="border border-gray-300 rounded px-3 py-1.5 text-sm"
+            className="input"
           />
           <input
             placeholder="Ülke"
             value={form.country}
             onChange={(e) => setForm({ ...form, country: e.target.value })}
             required
-            className="border border-gray-300 rounded px-3 py-1.5 text-sm"
+            className="input"
           />
           <select
             value={form.bean_type}
             onChange={(e) => setForm({ ...form, bean_type: e.target.value })}
-            className="border border-gray-300 rounded px-3 py-1.5 text-sm"
+            className="input"
           >
             <option>Arabica</option>
             <option>Robusta</option>
@@ -91,67 +114,110 @@ export default function MyProductsPage() {
             <option>Excelsa</option>
             <option>Blend</option>
           </select>
-          <select
-            value={form.pricing_unit}
-            onChange={(e) => setForm({ ...form, pricing_unit: e.target.value })}
-            className="border border-gray-300 rounded px-3 py-1.5 text-sm"
-          >
-            <option value="BAG">Çuval</option>
-            <option value="CONTAINER">Konteyner</option>
-          </select>
           <input
             type="number"
-            step="0.01"
-            placeholder="Birim Fiyat (USD)"
-            value={form.price_per_unit}
-            onChange={(e) => setForm({ ...form, price_per_unit: e.target.value })}
+            placeholder="Stok (ton) — örn. 19"
+            value={form.quantity_tons}
+            onChange={(e) => setForm({ ...form, quantity_tons: e.target.value })}
             required
-            className="border border-gray-300 rounded px-3 py-1.5 text-sm"
-          />
-          <input
-            type="number"
-            placeholder="Stok Miktarı"
-            value={form.quantity_available}
-            onChange={(e) => setForm({ ...form, quantity_available: e.target.value })}
-            required
-            className="border border-gray-300 rounded px-3 py-1.5 text-sm"
+            className="input"
           />
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button type="submit" className="bg-[var(--color-coffee)] text-white px-4 py-1.5 rounded text-sm">
+
+        <div className="border-t border-[var(--border)] pt-3 space-y-2">
+          <p className="text-xs text-[var(--text-tertiary)] uppercase tracking-wide font-semibold">
+            Fiyatlandırma
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <input
+              type="number"
+              step="0.0001"
+              placeholder="Kg başına fiyat (USD, zorunlu)"
+              value={form.price_per_kg}
+              onChange={(e) => setForm({ ...form, price_per_kg: e.target.value })}
+              required
+              className="input"
+            />
+            <input
+              type="number"
+              step="0.01"
+              placeholder="Ton başına fiyat (boş = otomatik)"
+              value={form.price_per_ton}
+              onChange={(e) => setForm({ ...form, price_per_ton: e.target.value })}
+              className="input"
+            />
+            <select
+              value={form.container_type_id}
+              onChange={(e) => setForm({ ...form, container_type_id: e.target.value })}
+              className="input"
+            >
+              <option value="">Konteyner tipi seçin (opsiyonel)</option>
+              {containerTypes.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} ({c.capacity_kg / 1000} ton)
+                </option>
+              ))}
+            </select>
+            <input
+              type="number"
+              step="0.01"
+              placeholder="Konteyner fiyatı (boş = otomatik)"
+              value={form.price_per_container}
+              onChange={(e) => setForm({ ...form, price_per_container: e.target.value })}
+              className="input"
+            />
+          </div>
+          <p className="text-xs text-[var(--text-tertiary)]">
+            Ton ve konteyner fiyatlarını boş bırakırsanız kg fiyatından otomatik hesaplanır; toplu alım
+            iskontosu uygulayacaksanız elle girebilirsiniz.
+          </p>
+        </div>
+
+        {error && <p className="text-sm text-[var(--error)]">{error}</p>}
+        <button type="submit" className="btn btn-primary">
           Ekle
         </button>
       </form>
 
       {loading ? (
-        <p className="text-gray-500">Yükleniyor…</p>
+        <p className="text-[var(--text-secondary)]">Yükleniyor…</p>
       ) : (
-        <table className="w-full text-sm border-collapse">
-          <thead>
-            <tr className="text-left border-b border-[var(--color-gold)]">
-              <th className="py-2">Başlık</th>
-              <th className="py-2">Ülke / Tür</th>
-              <th className="py-2">Fiyat</th>
-              <th className="py-2">Stok</th>
-              <th className="py-2">Durum</th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.map((p) => (
-              <tr key={p.id} className="border-b border-gray-100">
-                <td className="py-2">{p.title}</td>
-                <td className="py-2">
-                  {p.country} / {p.bean_type}
-                </td>
-                <td className="py-2">
-                  {p.price_per_unit} {p.currency}
-                </td>
-                <td className="py-2">{p.quantity_available}</td>
-                <td className="py-2">{p.status}</td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="text-left border-b border-[var(--color-gold)]">
+                <th className="py-2">Başlık</th>
+                <th className="py-2">Ülke / Tür</th>
+                <th className="py-2">Kg</th>
+                <th className="py-2">Ton</th>
+                <th className="py-2">Konteyner</th>
+                <th className="py-2">Stok (ton)</th>
+                <th className="py-2">Durum</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {products.map((p) => (
+                <tr key={p.id} className="border-b border-[var(--border)]">
+                  <td className="py-2">{p.title}</td>
+                  <td className="py-2">
+                    {p.country} / {p.bean_type}
+                  </td>
+                  <td className="py-2">
+                    {p.price_per_kg} {p.currency}
+                  </td>
+                  <td className="py-2">
+                    {p.price_per_ton} {p.currency}
+                  </td>
+                  <td className="py-2">
+                    {p.price_per_container != null ? `${p.price_per_container} ${p.currency}` : "—"}
+                  </td>
+                  <td className="py-2">{p.quantity_tons}</td>
+                  <td className="py-2">{p.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

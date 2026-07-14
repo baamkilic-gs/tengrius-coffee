@@ -9,10 +9,9 @@ interface Product {
   title: string;
   country: string;
   bean_type: string;
-  price_per_unit: number;
+  price_per_kg: number;
   currency: string;
-  pricing_unit: string;
-  quantity_available: number;
+  quantity_tons: number;
   seller: { name: string; verified: boolean };
 }
 
@@ -77,10 +76,10 @@ export default function ProductsListPage() {
                 {p.country} · {p.bean_type}
               </p>
               <p className="mt-3 text-[var(--color-coffee)] font-semibold">
-                {p.price_per_unit} {p.currency} / {p.pricing_unit === "CONTAINER" ? "konteyner" : "çuval"}
+                {p.price_per_kg} {p.currency} / kg
               </p>
-              <p className="text-xs text-gray-400 mt-1">
-                {p.seller.name} · Stok: {p.quantity_available}
+              <p className="text-xs text-[var(--text-tertiary)] mt-1">
+                {p.seller.name} · Stok: {p.quantity_tons} ton
               </p>
             </Link>
           ))}

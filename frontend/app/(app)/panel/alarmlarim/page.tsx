@@ -55,9 +55,9 @@ export default function PriceAlertsPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-bold text-[var(--color-coffee)]">Fiyat Alarmlarım</h1>
+      <h1 className="text-2xl font-semibold text-[var(--color-coffee)]">Fiyat Alarmlarım</h1>
 
-      <form onSubmit={submit} className="border border-gray-200 rounded-lg p-4 space-y-3">
+      <form onSubmit={submit} className="card space-y-3">
         <h2 className="font-semibold">Yeni Alarm</h2>
         <div className="grid grid-cols-2 gap-3">
           <input
@@ -65,13 +65,9 @@ export default function PriceAlertsPage() {
             value={country}
             onChange={(e) => setCountry(e.target.value)}
             required
-            className="border border-gray-300 rounded px-3 py-1.5 text-sm"
+            className="input"
           />
-          <select
-            value={beanType}
-            onChange={(e) => setBeanType(e.target.value)}
-            className="border border-gray-300 rounded px-3 py-1.5 text-sm"
-          >
+          <select value={beanType} onChange={(e) => setBeanType(e.target.value)} className="input">
             <option>Arabica</option>
             <option>Robusta</option>
             <option>Liberica</option>
@@ -80,41 +76,37 @@ export default function PriceAlertsPage() {
           </select>
           <input
             type="number"
-            step="0.01"
-            placeholder="Hedef Fiyat (USD)"
+            step="0.0001"
+            placeholder="Hedef kg fiyatı (USD)"
             value={targetPrice}
             onChange={(e) => setTargetPrice(e.target.value)}
             required
-            className="border border-gray-300 rounded px-3 py-1.5 text-sm"
+            className="input"
           />
-          <select
-            value={direction}
-            onChange={(e) => setDirection(e.target.value)}
-            className="border border-gray-300 rounded px-3 py-1.5 text-sm"
-          >
+          <select value={direction} onChange={(e) => setDirection(e.target.value)} className="input">
             <option value="BELOW">Fiyat altına düşünce</option>
             <option value="ABOVE">Fiyat üstüne çıkınca</option>
           </select>
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button type="submit" className="bg-[var(--color-coffee)] text-white px-4 py-1.5 rounded text-sm">
+        {error && <p className="text-sm text-[var(--error)]">{error}</p>}
+        <button type="submit" className="btn btn-primary">
           Alarm Kur
         </button>
       </form>
 
       {loading ? (
-        <p className="text-gray-500">Yükleniyor…</p>
+        <p className="text-[var(--text-secondary)]">Yükleniyor…</p>
       ) : alerts.length === 0 ? (
-        <p className="text-gray-500 text-sm">Henüz alarmınız yok</p>
+        <p className="text-[var(--text-secondary)] text-sm">Henüz alarmınız yok</p>
       ) : (
         <div className="space-y-2">
           {alerts.map((a) => (
-            <div key={a.id} className="border border-gray-200 rounded-lg p-3 flex items-center justify-between text-sm">
+            <div key={a.id} className="card flex items-center justify-between text-sm">
               <span>
-                {a.country} / {a.bean_type} — {a.direction === "BELOW" ? "≤" : "≥"} {a.target_price} USD
+                {a.country} / {a.bean_type} — {a.direction === "BELOW" ? "≤" : "≥"} {a.target_price} USD/kg
                 {!a.is_active && " (tetiklendi)"}
               </span>
-              <button onClick={() => remove(a.id)} className="text-red-600 text-xs">
+              <button onClick={() => remove(a.id)} className="text-[var(--error)] text-xs hover:underline">
                 Kaldır
               </button>
             </div>

@@ -22,37 +22,33 @@ export default function MembershipPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-[var(--color-coffee)]">Üyelik</h1>
+      <h1 className="text-2xl font-semibold text-[var(--color-coffee)]">Üyelik</h1>
 
-      <div className="border border-gray-200 rounded-lg p-4">
-        <p className="text-sm text-gray-500">Mevcut üyelik seviyeniz</p>
+      <div className="card">
+        <p className="text-sm text-[var(--text-tertiary)]">Mevcut üyelik seviyeniz</p>
         <p className="text-xl font-semibold">
           {org?.membership_tier === "PREMIUM" ? "Premium" : "Standart"}
         </p>
         {org?.membership_expires_at && (
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-[var(--text-tertiary)]">
             Bitiş: {new Date(org.membership_expires_at).toLocaleDateString("tr-TR")}
           </p>
         )}
       </div>
 
       {org?.membership_tier !== "PREMIUM" && (
-        <div className="border border-[var(--color-gold)] rounded-lg p-4 space-y-3">
+        <div className="card border-[var(--color-gold)] space-y-3">
           <h2 className="font-semibold">Premium'a Yükselt</h2>
-          <ul className="text-sm text-gray-600 list-disc pl-5 space-y-1">
+          <ul className="text-sm text-[var(--text-secondary)] list-disc pl-5 space-y-1">
             <li>Teklif verme</li>
             <li>Fiyat alarmı kurma</li>
             <li>Satın alma işlemi yapma</li>
             <li>(Satıcıysanız) öne çıkan listeleme</li>
           </ul>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-[var(--text-tertiary)]">
             MVP: gerçek ödeme entegrasyonu henüz aktif değil, bu buton üyeliği demo amaçlı 30 gün aktive eder.
           </p>
-          <button
-            onClick={upgrade}
-            disabled={loading}
-            className="bg-[var(--color-gold)] text-[var(--color-coffee-dark)] px-4 py-1.5 rounded text-sm font-medium disabled:opacity-50"
-          >
+          <button onClick={upgrade} disabled={loading} className="btn btn-primary">
             {loading ? "İşleniyor…" : "Premium'a Yükselt"}
           </button>
         </div>

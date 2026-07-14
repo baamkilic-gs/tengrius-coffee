@@ -16,7 +16,7 @@ export interface AuthUser {
 export interface AuthOrganization {
   id: string;
   name: string;
-  type: "BUYER" | "SELLER" | "BOTH";
+  type: "BUYER" | "SELLER" | "BOTH" | "ROASTER";
   country: string | null;
   membership_tier: "STANDARD" | "PREMIUM";
   membership_expires_at: string | null;

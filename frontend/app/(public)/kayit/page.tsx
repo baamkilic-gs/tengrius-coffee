@@ -7,12 +7,12 @@ import { api, setSession } from "../../../lib/api";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [orgName, setOrgName] = useState("");
   const [orgType, setOrgType] = useState("BUYER");
   const [country, setCountry] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -47,6 +47,33 @@ export default function RegisterPage() {
       <div className="card enter-fade-up max-w-sm w-full p-8">
         <h1 className="text-2xl font-semibold text-[var(--color-coffee)] mb-6 text-center">Kayıt Ol</h1>
         <form onSubmit={submit} className="space-y-3">
+          <p className="text-xs text-[var(--text-tertiary)] uppercase tracking-wide font-semibold">
+            Firma Bilgileri
+          </p>
+          <input
+            placeholder="Firma / Organizasyon Adı"
+            value={orgName}
+            onChange={(e) => setOrgName(e.target.value)}
+            required
+            className="input w-full"
+          />
+          <select value={orgType} onChange={(e) => setOrgType(e.target.value)} className="input w-full">
+            <option value="ROASTER">Roaster (kavrulmuş kahve üreticisi)</option>
+            <option value="BUYER">Çiğ kahve alıcısı</option>
+            <option value="SELLER">Satıcı</option>
+          </select>
+          <input
+            placeholder="Ülke"
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+            className="input w-full"
+          />
+
+          <hr className="border-[var(--border)] my-2" />
+
+          <p className="text-xs text-[var(--text-tertiary)] uppercase tracking-wide font-semibold">
+            Kişisel Bilgiler
+          </p>
           <input
             placeholder="Ad Soyad"
             value={fullName}
@@ -70,25 +97,7 @@ export default function RegisterPage() {
             required
             className="input w-full"
           />
-          <hr className="border-[var(--border)] my-1" />
-          <input
-            placeholder="Firma / Organizasyon Adı"
-            value={orgName}
-            onChange={(e) => setOrgName(e.target.value)}
-            required
-            className="input w-full"
-          />
-          <select value={orgType} onChange={(e) => setOrgType(e.target.value)} className="input w-full">
-            <option value="BUYER">Alıcıyım</option>
-            <option value="SELLER">Satıcıyım</option>
-            <option value="BOTH">Her ikisi</option>
-          </select>
-          <input
-            placeholder="Ülke"
-            value={country}
-            onChange={(e) => setCountry(e.target.value)}
-            className="input w-full"
-          />
+
           {error && <p className="text-sm text-[var(--error)]">{error}</p>}
           <button type="submit" disabled={loading} className="btn btn-primary w-full">
             {loading ? "Kayıt yapılıyor…" : "Kayıt Ol"}

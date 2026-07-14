@@ -14,10 +14,12 @@ interface ProductDetail {
   processing_method: string | null;
   moisture_pct: number | null;
   cupping_notes: string | null;
-  pricing_unit: string;
-  price_per_unit: number;
+  price_per_kg: number;
+  price_per_ton: number;
+  price_per_container: number | null;
   currency: string;
-  quantity_available: number;
+  quantity_tons: number;
+  containerType: { name: string } | null;
   seller: { id: string; name: string; country: string | null; verified: boolean };
 }
 
@@ -28,7 +30,7 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
   const [offerPrice, setOfferPrice] = useState("");
-  const [offerQty, setOfferQty] = useState("");
+  const [offerQtyTons, setOfferQtyTons] = useState("");
 
   const user = getUser();
   const org = getOrganization();
@@ -51,13 +53,13 @@ export default function ProductDetailPage() {
       body: JSON.stringify({
         product_id: params.id,
         offer_price: Number(offerPrice),
-        quantity: Number(offerQty),
+        quantity_kg: Number(offerQtyTons) * 1000,
       }),
     });
     if (res.ok) {
       setMessage("Teklifiniz gönderildi");
       setOfferPrice("");
-      setOfferQty("");
+      setOfferQtyTons("");
     } else {
       const err = await res.json().catch(() => ({}));
       setMessage(err.message ?? "Teklif gönderilemedi");
@@ -78,13 +80,24 @@ export default function ProductDetailPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-[20px] p-5">
-        <div>Fiyat</div>
+        <div>Kg Fiyatı</div>
         <div className="font-semibold">
-          {product.price_per_unit} {product.currency} /{" "}
-          {product.pricing_unit === "CONTAINER" ? "konteyner" : "çuval"}
+          {product.price_per_kg} {product.currency}
         </div>
+        <div>Ton Fiyatı</div>
+        <div className="font-semibold">
+          {product.price_per_ton} {product.currency}
+        </div>
+        {product.price_per_container != null && (
+          <>
+            <div>Konteyner Fiyatı{product.containerType ? ` (${product.containerType.name})` : ""}</div>
+            <div className="font-semibold">
+              {product.price_per_container} {product.currency}
+            </div>
+          </>
+        )}
         <div>Stok</div>
-        <div>{product.quantity_available}</div>
+        <div>{product.quantity_tons} ton</div>
         {product.harvest_year && (
           <>
             <div>Hasat Yılı</div>
@@ -140,8 +153,8 @@ export default function ProductDetailPage() {
           <div className="flex gap-3">
             <input
               type="number"
-              step="0.01"
-              placeholder="Teklif fiyatı"
+              step="0.0001"
+              placeholder="Teklif fiyatı (kg başına)"
               value={offerPrice}
               onChange={(e) => setOfferPrice(e.target.value)}
               required
@@ -149,9 +162,9 @@ export default function ProductDetailPage() {
             />
             <input
               type="number"
-              placeholder="Miktar"
-              value={offerQty}
-              onChange={(e) => setOfferQty(e.target.value)}
+              placeholder="Miktar (ton)"
+              value={offerQtyTons}
+              onChange={(e) => setOfferQtyTons(e.target.value)}
               required
               className="input flex-1"
             />
