@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getUser, getOrganization, clearSession, AuthUser, AuthOrganization } from "../../lib/api";
+import TengriusLogo from "./TengriusLogo";
 
 export default function Nav() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -23,11 +24,14 @@ export default function Nav() {
 
   return (
     <header className="bg-[var(--color-coffee)] text-[var(--color-cream)] px-6 py-3 flex items-center justify-between">
-      <Link href="/" className="flex items-baseline gap-2">
-        <span className="font-semibold text-lg text-[var(--color-gold-light)] font-[var(--font-heading)]">
-          Tengrius
+      <Link href="/" className="brand-logo flex items-center gap-2">
+        <TengriusLogo size={24} className="tengrius-sun text-[var(--color-gold-light)]" />
+        <span className="flex items-baseline gap-2">
+          <span className="font-semibold text-lg text-[var(--color-gold-light)] font-[var(--font-heading)]">
+            Tengrius
+          </span>
+          <span className="text-xs text-[var(--color-cream)]/60 hidden sm:inline">Kahve Borsası</span>
         </span>
-        <span className="text-xs text-[var(--color-cream)]/60 hidden sm:inline">Kahve Borsası</span>
       </Link>
       <nav className="flex items-center gap-4 text-sm">
         {user && org ? (
