@@ -45,9 +45,9 @@ export class OrdersController {
   }
 
   /**
-   * POST /orders — { product_id, quantity, unit_price?, payment_method }
-   * unit_price verilmezse ürünün güncel fiyatı kullanılır (kabul edilmiş bir tekliften
-   * gelen anlaşılan fiyat elle girilebilir). Satın alma yalnızca Premium alıcılara açık.
+   * POST /orders — { product_id, quantity_kg, unit_price?, payment_method } YA DA
+   * { offer_id, payment_method } (kabul edilmiş bir teklifin fiyat/miktarını aynen kullanır).
+   * unit_price verilmezse ürünün güncel fiyatı kullanılır. Satın alma yalnızca Premium alıcılara açık.
    */
   @UseGuards(PremiumGuard)
   @Post()
@@ -62,12 +62,26 @@ export class OrdersController {
       );
     }
 
-    const quantityKg = Number(body.quantity_kg);
+    let offer: any = null;
+    if (body.offer_id) {
+      offer = await this.prisma.offer.findUnique({ where: { id: body.offer_id }, include: { product: true } });
+      if (!offer || offer.buyer_org_id !== req.user.organization_id) {
+        throw new NotFoundException('Teklif bulunamadı');
+      }
+      if (offer.status !== 'ACCEPTED') {
+        throw new BadRequestException('Yalnızca kabul edilmiş bir tekliften sipariş oluşturulabilir');
+      }
+      if (offer.order_id) {
+        throw new BadRequestException('Bu teklif zaten bir siparişe dönüştürülmüş');
+      }
+    }
+
+    const quantityKg = offer ? Number(offer.quantity_kg) : Number(body.quantity_kg);
     if (!Number.isFinite(quantityKg) || quantityKg <= 0) {
       throw new BadRequestException('Geçerli bir miktar (kg) girin');
     }
 
-    const product = await this.prisma.product.findUnique({ where: { id: body.product_id } });
+    const product = offer ? offer.product : await this.prisma.product.findUnique({ where: { id: body.product_id } });
     if (!product || product.status !== 'ACTIVE') {
       throw new NotFoundException('Ürün bulunamadı veya artık aktif değil');
     }
@@ -75,7 +89,11 @@ export class OrdersController {
       throw new BadRequestException('Talep edilen miktar mevcut stoktan fazla');
     }
 
-    const unitPrice = body.unit_price !== undefined ? Number(body.unit_price) : Number(product.price_per_kg);
+    const unitPrice = offer
+      ? Number(offer.offer_price)
+      : body.unit_price !== undefined
+        ? Number(body.unit_price)
+        : Number(product.price_per_kg);
     if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
       throw new BadRequestException('Geçerli bir kg fiyatı girin');
     }
@@ -92,6 +110,10 @@ export class OrdersController {
         payment_method: paymentMethod as any,
       },
     });
+
+    if (offer) {
+      await this.prisma.offer.update({ where: { id: offer.id }, data: { order_id: order.id } });
+    }
 
     await this.notifications.send(product.seller_org_id, 'EMAIL', 'ORDER_CONFIRM', {
       order_id: order.id,

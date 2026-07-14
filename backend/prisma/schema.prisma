@@ -149,10 +149,12 @@ model Offer {
   quantity_kg  Float
   message      String?     @db.Text
   status       OfferStatus @default(PENDING) // PENDING | ACCEPTED | REJECTED | EXPIRED
+  order_id     String?     @unique // ACCEPTED teklif siparise donusturulunce doldurulur
   created_at   DateTime    @default(now())
 
   product Product      @relation(fields: [product_id], references: [id])
   buyer   Organization @relation(fields: [buyer_org_id], references: [id])
+  order   Order?       @relation(fields: [order_id], references: [id])
 }
 
 enum OfferStatus {
@@ -206,6 +208,7 @@ model Order {
   product Product      @relation(fields: [product_id], references: [id])
   buyer   Organization @relation("BuyerOrders", fields: [buyer_org_id], references: [id])
   seller  Organization @relation("SellerOrders", fields: [seller_org_id], references: [id])
+  offer   Offer?
 }
 
 enum PaymentMethod {
