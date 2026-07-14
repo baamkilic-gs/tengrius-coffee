@@ -31,7 +31,7 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
   const [offerPrice, setOfferPrice] = useState("");
-  const [offerQtyTons, setOfferQtyTons] = useState("");
+  const [offerQtyKg, setOfferQtyKg] = useState("");
   const [sendingOffer, setSendingOffer] = useState(false);
 
   const user = getUser();
@@ -56,14 +56,14 @@ export default function ProductDetailPage() {
       body: JSON.stringify({
         product_id: params.id,
         offer_price: Number(offerPrice),
-        quantity_kg: Number(offerQtyTons) * 1000,
+        quantity_kg: Number(offerQtyKg),
       }),
     });
     setSendingOffer(false);
     if (res.ok) {
       setMessage("Teklifiniz gönderildi");
       setOfferPrice("");
-      setOfferQtyTons("");
+      setOfferQtyKg("");
     } else {
       const err = await res.json().catch(() => ({}));
       setMessage(err.message ?? "Teklif gönderilemedi");
@@ -171,14 +171,21 @@ export default function ProductDetailPage() {
               required
               className="input flex-1"
             />
-            <input
-              type="number"
-              placeholder="Miktar (ton)"
-              value={offerQtyTons}
-              onChange={(e) => setOfferQtyTons(e.target.value)}
-              required
-              className="input flex-1"
-            />
+            <div className="flex-1">
+              <input
+                type="number"
+                placeholder="Miktar (kg)"
+                value={offerQtyKg}
+                onChange={(e) => setOfferQtyKg(e.target.value)}
+                required
+                className="input w-full"
+              />
+              {offerQtyKg && Number(offerQtyKg) > 0 && (
+                <p className="text-xs text-[var(--text-tertiary)] mt-1">
+                  ≈ {formatNumber(Number(offerQtyKg) / 1000, 3)} ton
+                </p>
+              )}
+            </div>
           </div>
           <div className="flex gap-3">
             <button type="submit" disabled={sendingOffer} className="btn btn-primary">
