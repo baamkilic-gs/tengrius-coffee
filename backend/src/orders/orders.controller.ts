@@ -4,6 +4,7 @@ import {
   Post,
   Patch,
   Param,
+  Query,
   Body,
   Req,
   UseGuards,
@@ -19,6 +20,21 @@ import { decimalFields } from '../common/serialize';
 const PAYMENT_METHODS = ['CREDIT_CARD', 'BANK_TRANSFER'];
 const ORDER_STATUSES = ['CREATED', 'CONFIRMED', 'SHIPPED', 'COMPLETED', 'CANCELLED'];
 
+// Sipariş ekranında karşı tarafın firma bilgileri — banka IBAN'ları havale ödemesi için gereklidir
+const ORG_CONTACT_SELECT = {
+  id: true,
+  name: true,
+  company_legal_name: true,
+  tax_number: true,
+  tax_office: true,
+  website: true,
+  country: true,
+  verified: true,
+  bank_iban_try: true,
+  bank_iban_usd: true,
+  shipping_address: true,
+};
+
 const orderView = (o: any) => decimalFields(o, ['unit_price', 'total_amount']);
 
 @Controller('orders')
@@ -28,7 +44,7 @@ export class OrdersController {
     private readonly notifications: NotificationsService,
   ) {}
 
-  /** GET /orders/mine — alıcı veya satıcı olarak taraf olduğum tüm siparişler */
+  /** GET /orders/mine — alıcı veya satıcı olarak taraf olduğum tüm siparişler; karşı tarafın firma bilgileri dahil */
   @Get('mine')
   async mine(@Req() req: any) {
     const orders = await this.prisma.order.findMany({
@@ -38,16 +54,49 @@ export class OrdersController {
           { seller_org_id: req.user.organization_id },
         ],
       },
-      include: { product: { select: { id: true, title: true } } },
+      include: {
+        product: { select: { id: true, title: true } },
+        buyer: { select: ORG_CONTACT_SELECT },
+        seller: { select: ORG_CONTACT_SELECT },
+      },
       orderBy: { created_at: 'desc' },
     });
     return orders.map(orderView);
   }
 
   /**
-   * POST /orders — { product_id, quantity_kg, unit_price?, payment_method } YA DA
-   * { offer_id, payment_method } (kabul edilmiş bir teklifin fiyat/miktarını aynen kullanır).
-   * unit_price verilmezse ürünün güncel fiyatı kullanılır. Satın alma yalnızca Premium alıcılara açık.
+   * GET /orders/stats?from=&to= — panel "Genel Bakış" için toplam adet/miktar/ciro.
+   * Satıcı organizasyonlar için satış tarafı, Roaster'lar için alım tarafı hesaplanır.
+   */
+  @Get('stats')
+  async stats(@Req() req: any, @Query('from') from?: string, @Query('to') to?: string) {
+    const isSeller = req.user.org_type === 'SELLER';
+    const where: any = isSeller
+      ? { seller_org_id: req.user.organization_id }
+      : { buyer_org_id: req.user.organization_id };
+    if (from || to) {
+      where.created_at = {};
+      if (from) where.created_at.gte = new Date(from);
+      if (to) where.created_at.lte = new Date(to);
+    }
+
+    const orders = await this.prisma.order.findMany({ where, select: { quantity_kg: true, total_amount: true } });
+    const totalQuantityKg = orders.reduce((sum, o) => sum + o.quantity_kg, 0);
+    const totalRevenue = orders.reduce((sum, o) => sum + Number(o.total_amount), 0);
+
+    return {
+      role: isSeller ? 'SELLER' : 'ROASTER',
+      order_count: orders.length,
+      total_quantity_kg: totalQuantityKg,
+      total_quantity_tons: Math.round((totalQuantityKg / 1000) * 1000) / 1000,
+      total_revenue: Math.round(totalRevenue * 100) / 100,
+    };
+  }
+
+  /**
+   * POST /orders — { offer_id, payment_method } — kabul edilmiş bir teklifin fiyat/miktarını
+   * aynen kullanarak sipariş oluşturur (her sipariş bir teklif üzerinden geçer, doğrudan/
+   * tekliften bağımsız satın alma kaldırıldı). Yalnızca Premium alıcılara açık.
    */
   @UseGuards(PremiumGuard)
   @Post()
@@ -61,27 +110,23 @@ export class OrdersController {
         'Kredi kartı ödemesi henüz aktif değil — bir ödeme sağlayıcısı entegrasyonu gerekir. Şimdilik BANK_TRANSFER kullanın.',
       );
     }
-
-    let offer: any = null;
-    if (body.offer_id) {
-      offer = await this.prisma.offer.findUnique({ where: { id: body.offer_id }, include: { product: true } });
-      if (!offer || offer.buyer_org_id !== req.user.organization_id) {
-        throw new NotFoundException('Teklif bulunamadı');
-      }
-      if (offer.status !== 'ACCEPTED') {
-        throw new BadRequestException('Yalnızca kabul edilmiş bir tekliften sipariş oluşturulabilir');
-      }
-      if (offer.order_id) {
-        throw new BadRequestException('Bu teklif zaten bir siparişe dönüştürülmüş');
-      }
+    if (!body.offer_id) {
+      throw new BadRequestException('Sipariş yalnızca kabul edilmiş bir teklif üzerinden oluşturulabilir');
     }
 
-    const quantityKg = offer ? Number(offer.quantity_kg) : Number(body.quantity_kg);
-    if (!Number.isFinite(quantityKg) || quantityKg <= 0) {
-      throw new BadRequestException('Geçerli bir miktar (kg) girin');
+    const offer = await this.prisma.offer.findUnique({ where: { id: body.offer_id }, include: { product: true } });
+    if (!offer || offer.buyer_org_id !== req.user.organization_id) {
+      throw new NotFoundException('Teklif bulunamadı');
+    }
+    if (offer.status !== 'ACCEPTED') {
+      throw new BadRequestException('Yalnızca kabul edilmiş bir tekliften sipariş oluşturulabilir');
+    }
+    if (offer.order_id) {
+      throw new BadRequestException('Bu teklif zaten bir siparişe dönüştürülmüş');
     }
 
-    const product = offer ? offer.product : await this.prisma.product.findUnique({ where: { id: body.product_id } });
+    const quantityKg = Number(offer.quantity_kg);
+    const product = offer.product;
     if (!product || product.status !== 'ACTIVE') {
       throw new NotFoundException('Ürün bulunamadı veya artık aktif değil');
     }
@@ -89,14 +134,7 @@ export class OrdersController {
       throw new BadRequestException('Talep edilen miktar mevcut stoktan fazla');
     }
 
-    const unitPrice = offer
-      ? Number(offer.offer_price)
-      : body.unit_price !== undefined
-        ? Number(body.unit_price)
-        : Number(product.price_per_kg);
-    if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
-      throw new BadRequestException('Geçerli bir kg fiyatı girin');
-    }
+    const unitPrice = Number(offer.offer_price);
 
     const order = await this.prisma.order.create({
       data: {
@@ -111,9 +149,7 @@ export class OrdersController {
       },
     });
 
-    if (offer) {
-      await this.prisma.offer.update({ where: { id: offer.id }, data: { order_id: order.id } });
-    }
+    await this.prisma.offer.update({ where: { id: offer.id }, data: { order_id: order.id } });
 
     await this.notifications.send(product.seller_org_id, 'EMAIL', 'ORDER_CONFIRM', {
       order_id: order.id,

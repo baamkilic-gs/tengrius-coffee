@@ -14,11 +14,19 @@ interface ContainerType {
   is_active: boolean;
 }
 
+interface SellerOrg {
+  id: string;
+  name: string;
+  country: string | null;
+  verified: boolean;
+}
+
 const emptyForm = { name: "", capacity_kg: "", bag_count: "", bag_weight_kg: "" };
 
 export default function AdminPage() {
   const [ready, setReady] = useState(false);
   const [containerTypes, setContainerTypes] = useState<ContainerType[]>([]);
+  const [sellers, setSellers] = useState<SellerOrg[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -30,6 +38,21 @@ export default function AdminPage() {
       .then((res) => res.json())
       .then(setContainerTypes)
       .catch(() => setContainerTypes([]));
+  };
+
+  const loadSellers = () => {
+    api("/organizations")
+      .then((res) => res.json())
+      .then(setSellers)
+      .catch(() => setSellers([]));
+  };
+
+  const toggleVerified = async (s: SellerOrg) => {
+    await api(`/organizations/${s.id}/verify`, {
+      method: "PATCH",
+      body: JSON.stringify({ verified: !s.verified }),
+    });
+    loadSellers();
   };
 
   useEffect(() => {
@@ -44,6 +67,7 @@ export default function AdminPage() {
     }
     setReady(true);
     loadContainerTypes();
+    loadSellers();
   }, [router]);
 
   const submit = async (e: React.FormEvent) => {
@@ -145,6 +169,32 @@ export default function AdminPage() {
               </button>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <div>
+          <h2 className="font-semibold">Yetkili Satıcılar</h2>
+          <p className="text-sm text-[var(--text-tertiary)]">
+            Rozeti verilen satıcılar İlanlar sayfasında ve anasayfada "Yetkili Satıcı" olarak öne çıkar.
+          </p>
+        </div>
+        <div className="space-y-2">
+          {sellers.length === 0 ? (
+            <p className="text-sm text-[var(--text-secondary)]">Henüz satıcı organizasyonu yok</p>
+          ) : (
+            sellers.map((s) => (
+              <div key={s.id} className="card flex items-center justify-between text-sm">
+                <span>
+                  <strong>{s.name}</strong> {s.country ? `— ${s.country}` : ""}{" "}
+                  {s.verified && <span className="badge badge-verified">Yetkili Satıcı</span>}
+                </span>
+                <button onClick={() => toggleVerified(s)} className="link text-xs">
+                  {s.verified ? "Rozeti kaldır" : "Yetkili Satıcı yap"}
+                </button>
+              </div>
+            ))
+          )}
         </div>
       </section>
 

@@ -66,6 +66,18 @@ export class MarketController {
     };
   }
 
+  /** GET /market/verified-sellers — anasayfa "Yetkili Satıcılar" bölümü için referans firma listesi */
+  @Public()
+  @Get('verified-sellers')
+  async verifiedSellers() {
+    return this.prisma.organization.findMany({
+      where: { type: 'SELLER', verified: true },
+      select: { id: true, name: true, country: true },
+      orderBy: { name: 'asc' },
+      take: 24,
+    });
+  }
+
   /**
    * GET /market/completed-sales — anasayfa "gerçekleşmiş satışlar" vitrini.
    * Gerçek COMPLETED siparişler; rekabet hassasiyeti nedeniyle firma adı ve

@@ -9,7 +9,6 @@ const LINKS = [
   { href: "/panel", label: "Genel Bakış" },
   { href: "/panel/urunlerim", label: "Ürünlerim" },
   { href: "/panel/tekliflerim", label: "Tekliflerim" },
-  { href: "/panel/alarmlarim", label: "Alarmlarım" },
   { href: "/panel/siparislerim", label: "Siparişlerim" },
   { href: "/panel/uyelik", label: "Üyelik" },
 ];
@@ -32,7 +31,7 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
 
   if (!checked) return null;
 
-  const canSell = !["BUYER", "ROASTER"].includes(org?.type ?? "");
+  const canSell = org?.type === "SELLER";
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8 flex gap-8">

@@ -6,51 +6,11 @@ import { api } from "../../lib/api";
 import { formatNumber } from "../../lib/format";
 
 const SPECIES = [
-  {
-    name: "Coffea Arabica",
-    common: "Arabica",
-    tagline: "Küresel üretimin lideri",
-    desc: "Aromatik ve kompleks — dünya kahve üretiminin çoğunluğunu oluşturur.",
-    accent: "#5a3420",
-    rgb: "90,52,32",
-    tilt: -3,
-  },
-  {
-    name: "Coffea Canephora",
-    common: "Robusta",
-    tagline: "Yüksek kafein, güçlü gövde",
-    desc: "Yüksek kafeinli ve hastalıklara dirençli ana tür; sert ve dolgun bir profil sunar.",
-    accent: "#7a2d1f",
-    rgb: "122,45,31",
-    tilt: 2,
-  },
-  {
-    name: "Coffea Liberica",
-    common: "Liberica",
-    tagline: "İri çekirdek, isli aroma",
-    desc: "Filipinler ve Malezya'da yetişir; çok büyük çekirdekli, isli/odunsu bir tür.",
-    accent: "#3d5a3a",
-    rgb: "61,90,58",
-    tilt: -2,
-  },
-  {
-    name: "Coffea Excelsa",
-    common: "Excelsa",
-    tagline: "Ekşimsi, meyvemsi profil",
-    desc: "Botanik olarak Liberica'nın bir alt türü kabul edilir; tart ve meyvemsi notalar taşır.",
-    accent: "#8a4a2a",
-    rgb: "138,74,42",
-    tilt: 3,
-  },
+  { common: "Arabica", accent: "#5a3420", rgb: "90,52,32", desc: "Aromatik ve kompleks — dünya kahve üretiminin çoğunluğu.", tilt: -3 },
+  { common: "Robusta", accent: "#7a2d1f", rgb: "122,45,31", desc: "Yüksek kafeinli, sert ve dolgun bir profil.", tilt: 2 },
+  { common: "Liberica", accent: "#3d5a3a", rgb: "61,90,58", desc: "İri çekirdekli, isli/odunsu bir tür.", tilt: -2 },
+  { common: "Excelsa", accent: "#8a4a2a", rgb: "138,74,42", desc: "Ekşimsi, meyvemsi notalar taşır.", tilt: 3 },
 ];
-
-interface PriceListItem {
-  country: string;
-  bean_type: string;
-  currency: string;
-  avg_price_per_kg: number;
-  listing_count: number;
-}
 
 interface Listing {
   id: string;
@@ -72,24 +32,18 @@ interface CompletedSale {
   completed_at: string;
 }
 
-// Gerçek logolar eklenene kadar yer tutucu — firma isimlerini/logolarını iletince değiştirilecek
-const REFERENCES = ['Firma A', 'Firma B', 'Firma C', 'Firma D', 'Firma E', 'Firma F'];
+interface VerifiedSeller {
+  id: string;
+  name: string;
+  country: string | null;
+}
 
 export default function HomePage() {
-  const [priceList, setPriceList] = useState<PriceListItem[]>([]);
   const [listings, setListings] = useState<Listing[]>([]);
   const [completedSales, setCompletedSales] = useState<CompletedSale[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [verifiedSellers, setVerifiedSellers] = useState<VerifiedSeller[]>([]);
 
   useEffect(() => {
-    api("/market/home")
-      .then((res) => res.json())
-      .then((data) => {
-        setPriceList(data.price_list ?? []);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-
     api("/products")
       .then((res) => res.json())
       .then((data) => setListings(Array.isArray(data) ? data.slice(0, 6) : []))
@@ -99,22 +53,21 @@ export default function HomePage() {
       .then((res) => res.json())
       .then((data) => setCompletedSales(Array.isArray(data) ? data : []))
       .catch(() => setCompletedSales([]));
+
+    api("/market/verified-sellers")
+      .then((res) => res.json())
+      .then((data) => setVerifiedSellers(Array.isArray(data) ? data : []))
+      .catch(() => setVerifiedSellers([]));
   }, []);
 
   return (
     <div>
-      {/* Hero — daraltıldı: sayfa açılır açılmaz İlanlar bölümü görünsün */}
-      <section className="hero-gradient text-[var(--color-cream)] overflow-hidden flex items-center min-h-[26vh]">
-        <div className="max-w-3xl mx-auto px-6 py-5 text-center space-y-2">
+      {/* Hero — yalnızca butonlara kadar daraltıldı */}
+      <section className="hero-gradient text-[var(--color-cream)] overflow-hidden flex items-center">
+        <div className="max-w-3xl mx-auto px-6 py-4 text-center space-y-2">
           <p className="enter-fade-up uppercase tracking-[0.2em] text-xs text-[var(--color-gold-light)] font-semibold">
             Çiğ Kahve Pazar Yeri
           </p>
-          <h1
-            className="enter-fade-up text-2xl md:text-3xl font-semibold leading-[1.15]"
-            style={{ textShadow: "0 2px 10px rgba(0,0,0,0.18)" }}
-          >
-            Dünyanın kahvesi, tek borsada buluşuyor
-          </h1>
           <div className="enter-fade-up flex flex-wrap gap-3 justify-center pt-1">
             <Link href="/urunler" className="btn btn-primary">
               Ürünlere Göz At
@@ -157,92 +110,42 @@ export default function HomePage() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold mb-2 text-[var(--color-coffee)]">Kahve Türleri</h2>
-          <p className="text-sm text-gray-500 mb-5">Borsada işlem gören başlıca çiğ kahve türleri</p>
-
           <div className="wood-panel">
             <div className="wood-panel-rule" />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 py-8 px-4">
               {SPECIES.map((s) => (
-                <div key={s.common} className="flex flex-col items-center gap-4 group">
-                  <div
-                    className="bean-bowl"
-                    style={{
-                      backgroundImage: `linear-gradient(rgba(${s.rgb},0.42), rgba(${s.rgb},0.42)), url(/coffee-beans-bg.jpg)`,
-                    }}
-                    title={s.desc}
-                  />
-                  <div className="kraft-tag" style={{ transform: `rotate(${s.tilt}deg)` }}>
-                    {s.common}
-                  </div>
-                </div>
+                <div
+                  key={s.common}
+                  className="bean-bowl"
+                  style={{
+                    backgroundImage: `linear-gradient(rgba(${s.rgb},0.42), rgba(${s.rgb},0.42)), url(/coffee-beans-bg.jpg)`,
+                  }}
+                  title={s.desc}
+                />
               ))}
             </div>
             <div className="wood-panel-rule" />
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-            {SPECIES.map((s) => (
-              <div key={s.common} className="text-center">
-                <p className="font-semibold text-sm" style={{ color: s.accent }}>
-                  {s.name}
-                </p>
-                <p className="text-xs text-[var(--text-tertiary)] mb-1">{s.tagline}</p>
-                <p className="text-xs text-[var(--text-secondary)]">{s.desc}</p>
-              </div>
-            ))}
-          </div>
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold mb-4 text-[var(--color-coffee)]">Güncel Borsa Fiyatları</h2>
-          {loading ? (
-            <p className="text-[var(--text-secondary)]">Yükleniyor…</p>
-          ) : priceList.length === 0 ? (
-            <p className="text-[var(--text-secondary)]">Henüz aktif ilan yok</p>
+          <h2 className="text-xl font-semibold mb-2 text-[var(--color-coffee)]">Yetkili Satıcılar</h2>
+          <p className="text-sm text-[var(--text-tertiary)] mb-5">Rozetli, doğrulanmış çiğ kahve satıcılarımız</p>
+          {verifiedSellers.length === 0 ? (
+            <p className="text-[var(--text-secondary)]">Henüz yetkili satıcı yok</p>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-[var(--border)] shadow-sm">
-              <table className="w-full text-sm border-collapse">
-                <thead>
-                  <tr className="text-left bg-[var(--color-coffee)] text-[var(--color-cream)]">
-                    <th className="py-3 px-4 font-medium">Ülke</th>
-                    <th className="py-3 px-4 font-medium">Tür</th>
-                    <th className="py-3 px-4 font-medium">Ortalama Kg Fiyatı</th>
-                    <th className="py-3 px-4 font-medium">İlan Sayısı</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {priceList.map((item, i) => (
-                    <tr key={i} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface-alt)]">
-                      <td className="py-3 px-4">{item.country}</td>
-                      <td className="py-3 px-4">{item.bean_type}</td>
-                      <td className="py-3 px-4 font-semibold text-[var(--color-coffee)]">
-                        {formatNumber(item.avg_price_per_kg, 4)} {item.currency}
-                      </td>
-                      <td className="py-3 px-4">{item.listing_count}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+              {verifiedSellers.map((s) => (
+                <div
+                  key={s.id}
+                  className="bg-[var(--surface)] border border-[var(--border)] rounded-xl h-20 flex flex-col items-center justify-center text-center px-2"
+                >
+                  <span className="text-sm font-medium">{s.name}</span>
+                  {s.country && <span className="text-xs text-[var(--text-tertiary)]">{s.country}</span>}
+                </div>
+              ))}
             </div>
           )}
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold mb-2 text-[var(--color-coffee)]">Referanslarımız</h2>
-          <p className="text-sm text-[var(--text-tertiary)] mb-5">
-            Birlikte çalıştığımız firmalar (logolar yakında eklenecek)
-          </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-            {REFERENCES.map((name) => (
-              <div
-                key={name}
-                className="bg-[var(--surface)] border border-dashed border-[var(--border)] rounded-xl h-20 flex items-center justify-center text-sm text-[var(--text-tertiary)]"
-              >
-                {name}
-              </div>
-            ))}
-          </div>
         </section>
 
         <section>

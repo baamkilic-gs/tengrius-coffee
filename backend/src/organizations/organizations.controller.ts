@@ -3,14 +3,16 @@ import {
   Get,
   Patch,
   Post,
+  Param,
   Req,
   Body,
   BadRequestException,
+  ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 
-const ORG_TYPES = ['BUYER', 'SELLER', 'BOTH', 'ROASTER'];
+const ORG_TYPES = ['SELLER', 'ROASTER'];
 
 const orgView = (o: any) => ({
   id: o.id,
@@ -22,6 +24,19 @@ const orgView = (o: any) => ({
   trust_score: o.trust_score,
   verified: o.verified,
   created_at: o.created_at,
+  tax_number: o.tax_number,
+  tax_office: o.tax_office,
+  company_legal_name: o.company_legal_name,
+  website: o.website,
+  bank_iban_try: o.bank_iban_try,
+  bank_iban_usd: o.bank_iban_usd,
+  includes_vat: o.includes_vat,
+  nationwide_shipping: o.nationwide_shipping,
+  same_day_shipping: o.same_day_shipping,
+  shipping_address: o.shipping_address,
+  ship_to_billing: o.ship_to_billing,
+  shipping_contact_name: o.shipping_contact_name,
+  shipping_contact_phone: o.shipping_contact_phone,
 });
 
 @Controller('organizations')
@@ -51,7 +66,7 @@ export class OrganizationsController {
     if (body.type !== undefined) {
       const type = String(body.type).toUpperCase();
       if (!ORG_TYPES.includes(type)) {
-        throw new BadRequestException('Tip BUYER, SELLER, BOTH veya ROASTER olmalıdır');
+        throw new BadRequestException('Tip SELLER veya ROASTER olmalıdır');
       }
       data.type = type;
     }
@@ -79,6 +94,35 @@ export class OrganizationsController {
     const updated = await this.prisma.organization.update({
       where: { id: req.user.organization_id },
       data: { membership_tier: 'PREMIUM', membership_expires_at: expires },
+    });
+    return orgView(updated);
+  }
+
+  /** GET /organizations — tüm satıcı organizasyonları listeler (yalnız admin) — "Yetkili Satıcı" rozeti yönetimi için */
+  @Get()
+  async listSellers(@Req() req: any) {
+    if (req.user.system_role !== 'ADMIN') {
+      throw new ForbiddenException('Bu listeyi yalnızca admin görebilir');
+    }
+    const orgs = await this.prisma.organization.findMany({
+      where: { type: 'SELLER' },
+      orderBy: { created_at: 'desc' },
+    });
+    return orgs.map(orgView);
+  }
+
+  /** PATCH /organizations/:id/verify — { verified } — "Yetkili Satıcı" rozetini admin verir/kaldırır */
+  @Patch(':id/verify')
+  async setVerified(@Req() req: any, @Param('id') id: string, @Body() body: any) {
+    if (req.user.system_role !== 'ADMIN') {
+      throw new ForbiddenException('Bu işlemi yalnızca admin yapabilir');
+    }
+    const org = await this.prisma.organization.findUnique({ where: { id } });
+    if (!org) throw new NotFoundException('Organizasyon bulunamadı');
+
+    const updated = await this.prisma.organization.update({
+      where: { id },
+      data: { verified: Boolean(body.verified) },
     });
     return orgView(updated);
   }

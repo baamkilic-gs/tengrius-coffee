@@ -52,7 +52,7 @@ async function main() {
     create: {
       id: '00000000-0000-0000-0000-000000000002',
       name: 'Örnek Kavurma Firması',
-      type: 'BUYER',
+      type: 'ROASTER',
       country: 'Türkiye',
       membership_tier: 'PREMIUM',
     },

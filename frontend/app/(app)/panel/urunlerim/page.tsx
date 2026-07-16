@@ -4,6 +4,11 @@ import { useEffect, useState } from "react";
 import { api } from "../../../../lib/api";
 import { formatNumber } from "../../../../lib/format";
 import { COUNTRIES } from "../../../../lib/countries";
+import { flagFor } from "../../../../lib/countryFlags";
+
+const CURRENT_YEAR = new Date().getFullYear();
+const HARVEST_YEARS = Array.from({ length: 5 }, (_, i) => CURRENT_YEAR - i);
+const PROCESSING_METHODS = ["Natural", "Washed", "Kurutulmuş"];
 
 interface ContainerType {
   id: string;
@@ -22,18 +27,32 @@ interface Product {
   currency: string;
   quantity_tons: number;
   status: string;
+  description: string | null;
+  greenbro_supplied: boolean;
+  harvest_year: number | null;
+  processing_method: string | null;
+  moisture_pct: number | null;
+  score: number | null;
+  cupping_notes: string | null;
   containerType: ContainerType | null;
 }
 
 const emptyForm = {
-  title: "",
   country: "",
+  title: "",
   bean_type: "Arabica",
+  quantity_tons: "",
   price_per_kg: "",
   price_per_ton: "",
   container_type_id: "",
   price_per_container: "",
-  quantity_tons: "",
+  description: "",
+  greenbro_supplied: false,
+  harvest_year: "",
+  processing_method: "",
+  moisture_pct: "",
+  score: "",
+  cupping_notes: "",
 };
 
 export default function MyProductsPage() {
@@ -77,6 +96,13 @@ export default function MyProductsPage() {
         container_type_id: form.container_type_id || undefined,
         price_per_container: form.price_per_container ? Number(form.price_per_container) : undefined,
         quantity_kg: Number(form.quantity_tons) * 1000,
+        description: form.description || undefined,
+        greenbro_supplied: form.greenbro_supplied,
+        harvest_year: form.harvest_year ? Number(form.harvest_year) : undefined,
+        processing_method: form.processing_method || undefined,
+        moisture_pct: form.moisture_pct ? Number(form.moisture_pct) : undefined,
+        score: form.score ? Number(form.score) : undefined,
+        cupping_notes: form.cupping_notes || undefined,
       }),
     });
     setSubmitting(false);
@@ -97,13 +123,6 @@ export default function MyProductsPage() {
       <form onSubmit={submit} className="card space-y-3">
         <h2 className="font-semibold">Yeni Parti Ekle</h2>
         <div className="grid grid-cols-2 gap-3">
-          <input
-            placeholder="Başlık"
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-            required
-            className="input"
-          />
           <select
             value={form.country}
             onChange={(e) => setForm({ ...form, country: e.target.value })}
@@ -113,10 +132,17 @@ export default function MyProductsPage() {
             <option value="">Ülke seçin</option>
             {COUNTRIES.map((c) => (
               <option key={c} value={c}>
-                {c}
+                {flagFor(c)} {c}
               </option>
             ))}
           </select>
+          <input
+            placeholder="Başlık"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            required
+            className="input"
+          />
           <select
             value={form.bean_type}
             onChange={(e) => setForm({ ...form, bean_type: e.target.value })}
@@ -136,6 +162,74 @@ export default function MyProductsPage() {
             required
             className="input"
           />
+        </div>
+
+        <div className="border-t border-[var(--border)] pt-3 space-y-2">
+          <p className="text-xs text-[var(--text-tertiary)] uppercase tracking-wide font-semibold">Detaylar</p>
+          <textarea
+            placeholder="Açıklama"
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            rows={2}
+            className="input w-full"
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <select
+              value={form.harvest_year}
+              onChange={(e) => setForm({ ...form, harvest_year: e.target.value })}
+              className="input"
+            >
+              <option value="">Hasat yılı seçin</option>
+              {HARVEST_YEARS.map((y) => (
+                <option key={y} value={y}>
+                  {y}
+                </option>
+              ))}
+            </select>
+            <select
+              value={form.processing_method}
+              onChange={(e) => setForm({ ...form, processing_method: e.target.value })}
+              className="input"
+            >
+              <option value="">İşlem türü seçin</option>
+              {PROCESSING_METHODS.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+            <input
+              type="number"
+              step="0.1"
+              placeholder="Nem oranı (%)"
+              value={form.moisture_pct}
+              onChange={(e) => setForm({ ...form, moisture_pct: e.target.value })}
+              className="input"
+            />
+            <input
+              type="number"
+              step="0.1"
+              placeholder="Skor"
+              value={form.score}
+              onChange={(e) => setForm({ ...form, score: e.target.value })}
+              className="input"
+            />
+          </div>
+          <textarea
+            placeholder="Tadım notları"
+            value={form.cupping_notes}
+            onChange={(e) => setForm({ ...form, cupping_notes: e.target.value })}
+            rows={2}
+            className="input w-full"
+          />
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={form.greenbro_supplied}
+              onChange={(e) => setForm({ ...form, greenbro_supplied: e.target.checked })}
+            />
+            Bu parti GreenBro'ya tedarik ediliyor/uygun
+          </label>
         </div>
 
         <div className="border-t border-[var(--border)] pt-3 space-y-2">
@@ -201,11 +295,11 @@ export default function MyProductsPage() {
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="text-left border-b border-[var(--color-gold)]">
+                <th className="py-2">Ülke</th>
                 <th className="py-2">Başlık</th>
-                <th className="py-2">Ülke / Tür</th>
+                <th className="py-2">Açıklama</th>
                 <th className="py-2">Kg</th>
                 <th className="py-2">Ton</th>
-                <th className="py-2">Konteyner</th>
                 <th className="py-2">Stok (ton)</th>
                 <th className="py-2">Durum</th>
               </tr>
@@ -213,18 +307,25 @@ export default function MyProductsPage() {
             <tbody>
               {products.map((p) => (
                 <tr key={p.id} className="border-b border-[var(--border)]">
-                  <td className="py-2">{p.title}</td>
                   <td className="py-2">
-                    {p.country} / {p.bean_type}
+                    {flagFor(p.country)} {p.country}
+                  </td>
+                  <td className="py-2">
+                    {p.title}
+                    {p.greenbro_supplied && (
+                      <span className="badge ml-1" title="GreenBro'ya tedarik ediliyor/uygun">
+                        GreenBro
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-2 max-w-[220px] truncate text-[var(--text-secondary)]">
+                    {p.description ?? "—"}
                   </td>
                   <td className="py-2">
                     {formatNumber(p.price_per_kg, 4)} {p.currency}
                   </td>
                   <td className="py-2">
                     {formatNumber(p.price_per_ton)} {p.currency}
-                  </td>
-                  <td className="py-2">
-                    {p.price_per_container != null ? `${formatNumber(p.price_per_container)} ${p.currency}` : "—"}
                   </td>
                   <td className="py-2">{formatNumber(p.quantity_tons, 1)}</td>
                   <td className="py-2">{p.status}</td>

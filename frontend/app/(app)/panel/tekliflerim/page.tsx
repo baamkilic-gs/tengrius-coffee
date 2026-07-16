@@ -17,6 +17,20 @@ interface Offer {
   buyer?: { id: string; name: string; verified: boolean };
 }
 
+const STATUS_STYLE: Record<string, string> = {
+  ACCEPTED: "border-l-4 border-l-[var(--success)]",
+  REJECTED: "border-l-4 border-l-[var(--error)] opacity-70",
+  PENDING: "",
+};
+
+function groupByStatus(offers: Offer[]) {
+  return {
+    accepted: offers.filter((o) => o.status === "ACCEPTED"),
+    pending: offers.filter((o) => o.status === "PENDING"),
+    rejected: offers.filter((o) => o.status === "REJECTED"),
+  };
+}
+
 export default function MyOffersPage() {
   const [sent, setSent] = useState<Offer[]>([]);
   const [received, setReceived] = useState<Offer[]>([]);
@@ -24,7 +38,7 @@ export default function MyOffersPage() {
   const [creatingOrderFor, setCreatingOrderFor] = useState<string | null>(null);
   const [orderError, setOrderError] = useState<string | null>(null);
   const org = getOrganization();
-  const canSell = !["BUYER", "ROASTER"].includes(org?.type ?? "");
+  const canSell = org?.type === "SELLER";
 
   const load = () => {
     Promise.all([
@@ -66,6 +80,9 @@ export default function MyOffersPage() {
 
   if (loading) return <p className="text-[var(--text-secondary)]">Yükleniyor…</p>;
 
+  const receivedGroups = groupByStatus(received);
+  const sentGroups = groupByStatus(sent);
+
   return (
     <div className="space-y-8">
       <h1 className="text-2xl font-semibold text-[var(--color-coffee)]">Tekliflerim</h1>
@@ -73,8 +90,8 @@ export default function MyOffersPage() {
       {received.length > 0 && (
         <section className="space-y-2">
           <h2 className="font-semibold">Gelen Teklifler</h2>
-          {received.map((o) => (
-            <div key={o.id} className="card flex items-center justify-between text-sm">
+          {[...receivedGroups.accepted, ...receivedGroups.pending, ...receivedGroups.rejected].map((o) => (
+            <div key={o.id} className={`card flex items-center justify-between text-sm ${STATUS_STYLE[o.status]}`}>
               <div>
                 <p className="font-medium">{o.product.title}</p>
                 <p className="text-[var(--text-secondary)]">
@@ -112,8 +129,8 @@ export default function MyOffersPage() {
             gidip "Teklif Ver" formunu kullanın (Premium üyelik gerekir).
           </p>
         ) : (
-          sent.map((o) => (
-            <div key={o.id} className="card flex items-center justify-between text-sm">
+          [...sentGroups.accepted, ...sentGroups.pending, ...sentGroups.rejected].map((o) => (
+            <div key={o.id} className={`card flex items-center justify-between text-sm ${STATUS_STYLE[o.status]}`}>
               <div>
                 <p className="font-medium">{o.product.title}</p>
                 <p className="text-[var(--text-secondary)]">

@@ -1,10 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { api, getOrganization } from "../../../../lib/api";
 import { formatNumber } from "../../../../lib/format";
+
+interface OrgInfo {
+  id: string;
+  name: string;
+  company_legal_name: string | null;
+  tax_number: string | null;
+  tax_office: string | null;
+  website: string | null;
+  country: string | null;
+  verified: boolean;
+  bank_iban_try: string | null;
+  bank_iban_usd: string | null;
+  shipping_address: string | null;
+}
 
 interface Order {
   id: string;
@@ -18,17 +31,14 @@ interface Order {
   buyer_org_id: string;
   seller_org_id: string;
   product: { id: string; title: string };
+  buyer: OrgInfo;
+  seller: OrgInfo;
 }
 
 export default function MyOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [buyForm, setBuyForm] = useState({ quantity_tons: "", unit_price: "" });
-  const [buyError, setBuyError] = useState<string | null>(null);
-  const [buySuccess, setBuySuccess] = useState<string | null>(null);
-  const [buying, setBuying] = useState(false);
-  const searchParams = useSearchParams();
-  const buyProductId = searchParams.get("buy");
+  const [expanded, setExpanded] = useState<string | null>(null);
   const org = getOrganization();
 
   const load = () => {
@@ -40,33 +50,6 @@ export default function MyOrdersPage() {
   };
 
   useEffect(load, []);
-
-  const submitPurchase = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setBuyError(null);
-    setBuySuccess(null);
-    setBuying(true);
-    const res = await api("/orders", {
-      method: "POST",
-      body: JSON.stringify({
-        product_id: buyProductId,
-        quantity_kg: Number(buyForm.quantity_tons) * 1000,
-        unit_price: buyForm.unit_price ? Number(buyForm.unit_price) : undefined,
-        payment_method: "BANK_TRANSFER",
-      }),
-    });
-    if (res.ok) {
-      const order = await res.json();
-      await api(`/payments/bank-transfer/${order.id}/notify`, { method: "POST" });
-      setBuyForm({ quantity_tons: "", unit_price: "" });
-      setBuySuccess("Sipariş oluşturuldu.");
-      load();
-    } else {
-      const err = await res.json().catch(() => ({}));
-      setBuyError(err.message ?? "Sipariş oluşturulamadı");
-    }
-    setBuying(false);
-  };
 
   const confirmPayment = async (id: string) => {
     await api(`/orders/${id}/payment-status`, {
@@ -80,83 +63,114 @@ export default function MyOrdersPage() {
     <div className="space-y-8">
       <h1 className="text-2xl font-semibold text-[var(--color-coffee)]">Siparişlerim</h1>
 
-      {buyProductId && (
-        <form onSubmit={submitPurchase} className="card space-y-3">
-          <h2 className="font-semibold">Satın Alma — Banka Havalesi</h2>
-          <p className="text-sm text-[var(--text-secondary)]">
-            Miktarı (ton) girin, sipariş oluşturulduktan sonra havale bilgileriyle ödemeyi yapın; satıcı
-            dekontu onayladığında sipariş durumu güncellenir.
-          </p>
-          <div className="flex gap-3">
-            <input
-              type="number"
-              placeholder="Miktar (ton)"
-              value={buyForm.quantity_tons}
-              onChange={(e) => setBuyForm({ ...buyForm, quantity_tons: e.target.value })}
-              required
-              className="input flex-1"
-            />
-            <input
-              type="number"
-              step="0.0001"
-              placeholder="Kg fiyatı (boş bırakılırsa güncel fiyat)"
-              value={buyForm.unit_price}
-              onChange={(e) => setBuyForm({ ...buyForm, unit_price: e.target.value })}
-              className="input flex-1"
-            />
-          </div>
-          {buyError && <p className="text-sm text-[var(--error)]">{buyError}</p>}
-          {buySuccess && <p className="text-sm text-[var(--success)]">{buySuccess}</p>}
-          <button type="submit" disabled={buying} className="btn btn-primary">
-            {buying ? "Oluşturuluyor…" : "Siparişi Oluştur"}
-          </button>
-        </form>
-      )}
-
       {loading ? (
         <p className="text-[var(--text-secondary)]">Yükleniyor…</p>
       ) : orders.length === 0 ? (
         <p className="text-[var(--text-secondary)] text-sm">
-          Henüz siparişiniz yok — satın almak için bir{" "}
-          <Link href="/urunler" className="link">
-            ürün sayfasına
+          Henüz siparişiniz yok — bir teklif kabul edildikten sonra{" "}
+          <Link href="/panel/tekliflerim" className="link">
+            Tekliflerim
           </Link>{" "}
-          gidip "Satın Al" butonunu kullanın (Premium üyelik gerekir).
+          sayfasından sipariş oluşturabilirsiniz.
         </p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr className="text-left border-b border-[var(--color-gold)]">
-                <th className="py-2">Ürün</th>
-                <th className="py-2">Miktar (ton)</th>
-                <th className="py-2">Tutar</th>
-                <th className="py-2">Ödeme</th>
-                <th className="py-2">Durum</th>
-                <th className="py-2"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((o) => (
-                <tr key={o.id} className="border-b border-[var(--border)]">
-                  <td className="py-2">{o.product.title}</td>
-                  <td className="py-2">{formatNumber(o.quantity_kg / 1000, 1)}</td>
-                  <td className="py-2">
-                    {formatNumber(o.total_amount)} {o.currency}
-                  </td>
-                  <td className="py-2">{o.payment_status}</td>
-                  <td className="py-2">{o.order_status}</td>
-                  <td className="py-2">
-                    {org?.id === o.seller_org_id && o.payment_status === "PENDING" && (
-                      <button onClick={() => confirmPayment(o.id)} className="link text-xs">
-                        Ödemeyi Onayla
-                      </button>
+        <div className="space-y-3">
+          {orders.map((o) => {
+            const isBuyer = org?.id === o.buyer_org_id;
+            const counterpart = isBuyer ? o.seller : o.buyer;
+            const isExpanded = expanded === o.id;
+            return (
+              <div key={o.id} className="card space-y-2 text-sm">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="font-medium">{o.product.title}</p>
+                    <p className="text-[var(--text-secondary)]">
+                      {formatNumber(o.quantity_kg / 1000, 1)} ton × {formatNumber(o.unit_price, 4)} {o.currency} ={" "}
+                      {formatNumber(o.total_amount)} {o.currency}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p>
+                      Ödeme: <span className="font-medium">{o.payment_status}</span>
+                    </p>
+                    <p>
+                      Durum: <span className="font-medium">{o.order_status}</span>
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setExpanded(isExpanded ? null : o.id)}
+                  className="link text-xs"
+                >
+                  {isExpanded ? "Firma bilgilerini gizle" : `${isBuyer ? "Satıcı" : "Alıcı"} firma bilgilerini göster`}
+                </button>
+
+                {isExpanded && (
+                  <div className="border-t border-[var(--border)] pt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-[var(--text-secondary)]">
+                    <div>Firma</div>
+                    <div>
+                      {counterpart.name} {counterpart.verified && <span className="badge badge-verified">Yetkili Satıcı</span>}
+                    </div>
+                    {counterpart.company_legal_name && (
+                      <>
+                        <div>Şirket Adı</div>
+                        <div>{counterpart.company_legal_name}</div>
+                      </>
                     )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    {(counterpart.tax_number || counterpart.tax_office) && (
+                      <>
+                        <div>Vergi No / Dairesi</div>
+                        <div>
+                          {counterpart.tax_number ?? "—"} / {counterpart.tax_office ?? "—"}
+                        </div>
+                      </>
+                    )}
+                    {counterpart.website && (
+                      <>
+                        <div>Website</div>
+                        <div>{counterpart.website}</div>
+                      </>
+                    )}
+                    {counterpart.country && (
+                      <>
+                        <div>Ülke</div>
+                        <div>{counterpart.country}</div>
+                      </>
+                    )}
+                    {!isBuyer && counterpart.shipping_address && (
+                      <>
+                        <div>Sevk Adresi</div>
+                        <div>{counterpart.shipping_address}</div>
+                      </>
+                    )}
+                    {isBuyer && (counterpart.bank_iban_try || counterpart.bank_iban_usd) && (
+                      <>
+                        {counterpart.bank_iban_try && (
+                          <>
+                            <div>TL IBAN</div>
+                            <div>{counterpart.bank_iban_try}</div>
+                          </>
+                        )}
+                        {counterpart.bank_iban_usd && (
+                          <>
+                            <div>USD IBAN</div>
+                            <div>{counterpart.bank_iban_usd}</div>
+                          </>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {org?.id === o.seller_org_id && o.payment_status === "PENDING" && (
+                  <button onClick={() => confirmPayment(o.id)} className="link text-xs">
+                    Ödemeyi Onayla
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

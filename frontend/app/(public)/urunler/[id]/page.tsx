@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { api, getUser, getOrganization } from "../../../../lib/api";
 import { formatNumber } from "../../../../lib/format";
+import { flagFor } from "../../../../lib/countryFlags";
 
 interface ProductDetail {
   id: string;
@@ -14,7 +15,10 @@ interface ProductDetail {
   harvest_year: number | null;
   processing_method: string | null;
   moisture_pct: number | null;
+  description: string | null;
   cupping_notes: string | null;
+  score: number | null;
+  greenbro_supplied: boolean;
   price_per_kg: number;
   price_per_ton: number;
   price_per_container: number | null;
@@ -26,7 +30,6 @@ interface ProductDetail {
 
 export default function ProductDetailPage() {
   const params = useParams<{ id: string }>();
-  const router = useRouter();
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
@@ -76,12 +79,21 @@ export default function ProductDetailPage() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-10 space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-[var(--color-coffee)]">{product.title}</h1>
+        <h1 className="text-2xl font-semibold text-[var(--color-coffee)]">
+          {product.title}
+          {product.greenbro_supplied && (
+            <span className="badge ml-2 align-middle" title="GreenBro'ya tedarik ediliyor/uygun">
+              GreenBro
+            </span>
+          )}
+        </h1>
         <p className="text-[var(--text-secondary)]">
-          {product.country}
+          {flagFor(product.country)} {product.country}
           {product.region ? ` · ${product.region}` : ""} · {product.bean_type}
         </p>
       </div>
+
+      {product.description && <p className="text-sm text-[var(--text-secondary)]">{product.description}</p>}
 
       <div className="grid grid-cols-2 gap-4 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-[20px] p-5">
         <div>Kg Fiyatı</div>
@@ -120,6 +132,12 @@ export default function ProductDetailPage() {
             <div>%{product.moisture_pct}</div>
           </>
         )}
+        {product.score != null && (
+          <>
+            <div>Skor</div>
+            <div>{product.score}</div>
+          </>
+        )}
         <div>Satıcı</div>
         <div>
           {product.seller.name} {product.seller.verified ? "✓" : ""}
@@ -128,7 +146,7 @@ export default function ProductDetailPage() {
 
       {product.cupping_notes && (
         <div>
-          <h2 className="font-semibold mb-1">Cupping Notları</h2>
+          <h2 className="font-semibold mb-1">Tadım Notları</h2>
           <p className="text-[var(--text-secondary)] text-sm">{product.cupping_notes}</p>
         </div>
       )}
@@ -137,21 +155,21 @@ export default function ProductDetailPage() {
 
       {!user && (
         <p className="text-sm text-[var(--text-secondary)]">
-          Teklif vermek veya satın almak için <a href="/giris" className="link">giriş yapın</a>.
+          Teklif vermek için <a href="/giris" className="link">giriş yapın</a>.
         </p>
       )}
 
       {user && !isPremium && !isOwnProduct && (
         <p className="text-sm text-[var(--text-secondary)]">
-          Teklif verme ve satın alma yalnızca Premium üyelere açıktır.{" "}
+          Teklif verme yalnızca Premium üyelere açıktır.{" "}
           <a href="/panel/uyelik" className="link">Üyeliğinizi yükseltin</a>.
         </p>
       )}
 
       {user && isOwnProduct && (
         <p className="text-sm text-[var(--text-tertiary)]">
-          Bu ürün size ait olduğu için teklif verme/satın alma seçenekleri gösterilmiyor — başka bir
-          organizasyonun ürününü görüntülediğinizde bu bölümde "Teklif Ver" ve "Satın Al" seçenekleri çıkar.
+          Bu ürün size ait olduğu için teklif verme seçeneği gösterilmiyor — başka bir organizasyonun
+          ürününü görüntülediğinizde bu bölümde "Teklif Ver" formu çıkar.
         </p>
       )}
 
@@ -187,18 +205,9 @@ export default function ProductDetailPage() {
               )}
             </div>
           </div>
-          <div className="flex gap-3">
-            <button type="submit" disabled={sendingOffer} className="btn btn-primary">
-              {sendingOffer ? "Gönderiliyor…" : "Teklif Gönder"}
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push(`/panel/siparislerim?buy=${product.id}`)}
-              className="btn btn-primary"
-            >
-              Satın Al
-            </button>
-          </div>
+          <button type="submit" disabled={sendingOffer} className="btn btn-primary">
+            {sendingOffer ? "Gönderiliyor…" : "Teklif Gönder"}
+          </button>
         </form>
       )}
     </div>

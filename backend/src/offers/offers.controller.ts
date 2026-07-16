@@ -54,8 +54,8 @@ export class OffersController {
   @UseGuards(PremiumGuard)
   @Post()
   async create(@Req() req: any, @Body() body: any) {
-    if (!['BUYER', 'BOTH', 'ROASTER'].includes(req.user.org_type)) {
-      throw new ForbiddenException('Teklif verme yalnızca alıcı organizasyonlarına açıktır');
+    if (req.user.org_type !== 'ROASTER') {
+      throw new ForbiddenException('Teklif verme yalnızca alıcı (Roaster) organizasyonlarına açıktır');
     }
 
     const offerPrice = Number(body.offer_price);
@@ -89,6 +89,11 @@ export class OffersController {
       offer_id: offer.id,
       product_id: product.id,
       status: 'PENDING',
+    });
+    await this.notifications.send(req.user.organization_id, 'EMAIL', 'OFFER_UPDATE', {
+      offer_id: offer.id,
+      product_id: product.id,
+      status: 'SENT',
     });
 
     return offerView(offer);

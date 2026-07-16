@@ -15,7 +15,9 @@ import {
 import { PrismaService } from '../prisma.service';
 import { PriceAlertsService } from '../price-alerts/price-alerts.service';
 import { Public } from '../auth/public.decorator';
-import { productView, productInclude as include } from '../common/product-view';
+import { productView, productInclude as include, isPromotedSeller } from '../common/product-view';
+
+const PROCESSING_METHODS = ['Natural', 'Washed', 'Kurutulmuş'];
 
 @Controller('products')
 export class ProductsController {
@@ -42,7 +44,17 @@ export class ProductsController {
       orderBy: [{ is_featured: 'desc' }, { created_at: 'desc' }],
       include,
     });
-    return products.map(productView);
+
+    // Kayıtta "öne çıkarma" tercihlerini (KDV dahil/Türkiye geneli/aynı gün) kabul eden
+    // satıcıların ürünleri, is_featured grubu içinde öne alınır (sıralama stabildir).
+    const sorted = [...products].sort((a, b) => {
+      if (a.is_featured !== b.is_featured) return a.is_featured ? -1 : 1;
+      const pa = isPromotedSeller(a.seller);
+      const pb = isPromotedSeller(b.seller);
+      if (pa !== pb) return pa ? -1 : 1;
+      return 0;
+    });
+    return sorted.map(productView);
   }
 
   /** GET /products/mine — organizasyonuma ait tüm ürünler (durumu ne olursa olsun) */
@@ -65,10 +77,10 @@ export class ProductsController {
     return productView(product);
   }
 
-  /** POST /products — yeni parti/lot girişi (yalnız SELLER/BOTH organizasyonlar) */
+  /** POST /products — yeni parti/lot girişi (yalnız SELLER organizasyonlar) */
   @Post()
   async create(@Req() req: any, @Body() body: any) {
-    if (!['SELLER', 'BOTH'].includes(req.user.org_type)) {
+    if (req.user.org_type !== 'SELLER') {
       throw new ForbiddenException('Ürün girişi yalnızca satıcı organizasyonlarına açıktır');
     }
 
@@ -86,6 +98,9 @@ export class ProductsController {
     }
     if (!Number.isFinite(quantityKg) || quantityKg <= 0) {
       throw new BadRequestException('Geçerli bir stok miktarı (kg) girin');
+    }
+    if (body.processing_method && !PROCESSING_METHODS.includes(body.processing_method)) {
+      throw new BadRequestException('İşlem türü Natural, Washed veya Kurutulmuş olmalıdır');
     }
 
     let containerType: { id: string; capacity_kg: number } | null = null;
@@ -120,7 +135,10 @@ export class ProductsController {
         harvest_year: body.harvest_year ? Number(body.harvest_year) : null,
         processing_method: body.processing_method ?? null,
         moisture_pct: body.moisture_pct ? Number(body.moisture_pct) : null,
+        description: body.description ?? null,
         cupping_notes: body.cupping_notes ?? null,
+        score: body.score ? Number(body.score) : null,
+        greenbro_supplied: Boolean(body.greenbro_supplied),
         other_specs: body.other_specs ?? undefined,
         price_per_kg: pricePerKg,
         price_per_ton: priceTon,
@@ -145,10 +163,17 @@ export class ProductsController {
       throw new ForbiddenException('Bu ürün size ait değil');
     }
 
+    if (body.processing_method && !PROCESSING_METHODS.includes(body.processing_method)) {
+      throw new BadRequestException('İşlem türü Natural, Washed veya Kurutulmuş olmalıdır');
+    }
+
     const data: any = {};
-    for (const field of ['title', 'region', 'processing_method', 'cupping_notes', 'currency']) {
+    for (const field of ['title', 'region', 'processing_method', 'description', 'cupping_notes', 'currency']) {
       if (body[field] !== undefined) data[field] = body[field];
     }
+    if (body.moisture_pct !== undefined) data.moisture_pct = body.moisture_pct === '' ? null : Number(body.moisture_pct);
+    if (body.score !== undefined) data.score = body.score === '' ? null : Number(body.score);
+    if (body.greenbro_supplied !== undefined) data.greenbro_supplied = Boolean(body.greenbro_supplied);
     if (body.quantity_kg !== undefined) {
       const quantityKg = Number(body.quantity_kg);
       if (!Number.isFinite(quantityKg) || quantityKg < 0) {

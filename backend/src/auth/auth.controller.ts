@@ -13,7 +13,7 @@ import * as bcrypt from 'bcryptjs';
 import { Public } from './public.decorator';
 import { PrismaService } from '../prisma.service';
 
-const ORG_TYPES = ['BUYER', 'SELLER', 'BOTH', 'ROASTER'];
+const ORG_TYPES = ['SELLER', 'ROASTER'];
 
 // Yanıtlara şifre hash'i asla dahil edilmez
 const userView = (u: any) => ({
@@ -34,6 +34,11 @@ const orgView = (o: any) => ({
   membership_tier: o.membership_tier,
   membership_expires_at: o.membership_expires_at,
   verified: o.verified,
+  company_legal_name: o.company_legal_name,
+  website: o.website,
+  includes_vat: o.includes_vat,
+  nationwide_shipping: o.nationwide_shipping,
+  same_day_shipping: o.same_day_shipping,
 });
 
 @Controller('auth')
@@ -44,8 +49,12 @@ export class AuthController {
   ) {}
 
   /**
-   * POST /auth/register — { email, password, full_name, organization_name, organization_type, country }
-   * Yeni kullanıcı + organizasyon (OWNER olarak) oluşturur, oturum açar.
+   * POST /auth/register — kullanıcı + organizasyon (OWNER olarak) oluşturur, oturum açar.
+   * Ortak: email, password, full_name, phone, organization_name, organization_type (SELLER|ROASTER),
+   *   country, kvkk_accepted, security_policy_accepted, sales_agreement_accepted (üçü de zorunlu).
+   * SELLER ek zorunlu alanlar: tax_number, tax_office, company_legal_name, website.
+   *   Opsiyonel: bank_iban_try, bank_iban_usd, includes_vat, nationwide_shipping, same_day_shipping.
+   * ROASTER ek alanlar: shipping_address + ship_to_billing; false ise shipping_contact_name/phone zorunlu.
    */
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Public()
@@ -54,6 +63,7 @@ export class AuthController {
     const email = String(body.email ?? '').trim().toLowerCase();
     const password = String(body.password ?? '');
     const fullName = String(body.full_name ?? '').trim();
+    const phone = body.phone ? String(body.phone).trim() : null;
     const orgName = String(body.organization_name ?? '').trim();
     const orgType = String(body.organization_type ?? '').toUpperCase();
     const country = body.country ? String(body.country).trim() : null;
@@ -68,10 +78,64 @@ export class AuthController {
       throw new BadRequestException('Ad soyad zorunludur');
     }
     if (!orgName) {
-      throw new BadRequestException('Firma/organizasyon adı zorunludur');
+      throw new BadRequestException('Firma adı zorunludur');
     }
     if (!ORG_TYPES.includes(orgType)) {
-      throw new BadRequestException('Organizasyon tipi BUYER, SELLER, BOTH veya ROASTER olmalıdır');
+      throw new BadRequestException('Organizasyon tipi SELLER veya ROASTER olmalıdır');
+    }
+    if (!body.kvkk_accepted || !body.security_policy_accepted || !body.sales_agreement_accepted) {
+      throw new BadRequestException(
+        'KVKK Aydınlatma Metni, Bilgi Güvenliği Politikası ve Satış Sözleşmesi onayı zorunludur',
+      );
+    }
+
+    const orgData: any = { name: orgName, type: orgType as any, country };
+    const now = new Date();
+    orgData.kvkk_accepted_at = now;
+    orgData.security_policy_accepted_at = now;
+    orgData.sales_agreement_accepted_at = now;
+
+    if (orgType === 'SELLER') {
+      const taxNumber = String(body.tax_number ?? '').trim();
+      const taxOffice = String(body.tax_office ?? '').trim();
+      const companyLegalName = String(body.company_legal_name ?? '').trim();
+      const website = String(body.website ?? '').trim();
+      if (!taxNumber || !taxOffice) {
+        throw new BadRequestException('Vergi numarası ve vergi dairesi zorunludur');
+      }
+      if (!companyLegalName) {
+        throw new BadRequestException('Şirket adı zorunludur');
+      }
+      if (!website) {
+        throw new BadRequestException('Website zorunludur');
+      }
+      orgData.tax_number = taxNumber;
+      orgData.tax_office = taxOffice;
+      orgData.company_legal_name = companyLegalName;
+      orgData.website = website;
+      orgData.bank_iban_try = body.bank_iban_try ? String(body.bank_iban_try).trim() : null;
+      orgData.bank_iban_usd = body.bank_iban_usd ? String(body.bank_iban_usd).trim() : null;
+      orgData.includes_vat = Boolean(body.includes_vat);
+      orgData.nationwide_shipping = Boolean(body.nationwide_shipping);
+      orgData.same_day_shipping = Boolean(body.same_day_shipping);
+    } else {
+      orgData.tax_number = body.tax_number ? String(body.tax_number).trim() : null;
+      orgData.tax_office = body.tax_office ? String(body.tax_office).trim() : null;
+      orgData.website = body.website ? String(body.website).trim() : null;
+      orgData.shipping_address = body.shipping_address ? String(body.shipping_address).trim() : null;
+      const shipToBilling = body.ship_to_billing !== false;
+      orgData.ship_to_billing = shipToBilling;
+      if (!shipToBilling) {
+        const shippingContactName = String(body.shipping_contact_name ?? '').trim();
+        const shippingContactPhone = String(body.shipping_contact_phone ?? '').trim();
+        if (!shippingContactName || !shippingContactPhone) {
+          throw new BadRequestException(
+            'Fatura adresine gönderilmeyecekse sevkiyat için kişi adı ve telefonu zorunludur',
+          );
+        }
+        orgData.shipping_contact_name = shippingContactName;
+        orgData.shipping_contact_phone = shippingContactPhone;
+      }
     }
 
     const exists = await this.prisma.user.findUnique({ where: { email } });
@@ -81,15 +145,14 @@ export class AuthController {
       data: {
         email,
         full_name: fullName,
+        phone,
         password_hash: await bcrypt.hash(password, 10),
       },
     });
 
     const organization = await this.prisma.organization.create({
       data: {
-        name: orgName,
-        type: orgType as any,
-        country,
+        ...orgData,
         members: {
           create: { user_id: user.id, role_in_org: 'OWNER' },
         },

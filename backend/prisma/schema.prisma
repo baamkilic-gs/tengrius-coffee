@@ -27,13 +27,35 @@ model User {
 model Organization {
   id                    String         @id @default(uuid())
   name                  String
-  type                  OrgType // BUYER | SELLER | BOTH
+  type                  OrgType // SELLER | ROASTER
   country               String?
   membership_tier       MembershipTier @default(STANDARD) // STANDARD | PREMIUM
   membership_expires_at DateTime?
   trust_score           Int            @default(0)
-  verified              Boolean        @default(false)
+  verified              Boolean        @default(false) // "Yetkili Satıcı" rozeti — yalnızca admin verir
   created_at            DateTime       @default(now())
+
+  // ==== Satıcı kayıt alanları ====
+  tax_number          String? // Vergi numarası
+  tax_office          String? // Vergi dairesi
+  company_legal_name  String? // Şirket adı (ticari unvan) — Firma adı (name) marka/görünen ad
+  website             String?
+  bank_iban_try       String? // opsiyonel — banka havalesi ödemelerinde alıcıya gösterilir
+  bank_iban_usd       String?
+  includes_vat        Boolean @default(false) // KDV dahil
+  nationwide_shipping Boolean @default(false) // Tüm Türkiye nakliye
+  same_day_shipping   Boolean @default(false) // Aynı gün sevkiyat (15:00'a kadar)
+
+  // ==== Roaster (alıcı) kayıt alanları ====
+  shipping_address       String? @db.Text // Sevk adresi (fatura adresinden farklıysa)
+  ship_to_billing        Boolean @default(true) // "Fatura adresine gönderilsin mi?"
+  shipping_contact_name  String? // ship_to_billing=false ise doldurulur
+  shipping_contact_phone String?
+
+  // ==== Zorunlu yasal onaylar (kayıt anında) ====
+  kvkk_accepted_at            DateTime?
+  security_policy_accepted_at DateTime?
+  sales_agreement_accepted_at DateTime?
 
   members      OrganizationMember[]
   products     Product[]
@@ -61,10 +83,8 @@ enum SystemRole {
 }
 
 enum OrgType {
-  BUYER
   SELLER
-  BOTH
-  ROASTER // kavrulmus kahve ureticisi - alici tarafi gibi davranir (ciğ kahve satin alir)
+  ROASTER // kavrulmus kahve ureticisi - alici tarafi (ciğ kahve satin alir, teklif verir)
 }
 
 enum MembershipTier {
@@ -98,9 +118,12 @@ model Product {
   region            String?
   bean_type         String // Arabica | Robusta | Liberica | Excelsa | Blend
   harvest_year      Int?
-  processing_method String? // Washed | Natural | Honey ...
+  processing_method String? // Natural | Washed | Kurutulmuş
   moisture_pct      Float?
-  cupping_notes     String? @db.Text
+  description       String? @db.Text // ürün kartında gösterilen genel açıklama
+  cupping_notes     String? @db.Text // tadım notları
+  score             Float? // elle girilen kalite skoru
+  greenbro_supplied Boolean @default(false) // bu parti GreenBro'ya tedarik ediliyor/uygun mu
   other_specs       Json?
 
   // Kanonik fiyat kg basinadir; ton ve konteyner fiyatlari ContainerType
