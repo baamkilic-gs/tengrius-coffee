@@ -5,6 +5,8 @@ import Link from "next/link";
 import { api } from "../../lib/api";
 import { formatNumber } from "../../lib/format";
 import FlagIcon from "../components/FlagIcon";
+import Reveal from "../components/Reveal";
+import CoffeeBeltMap from "../components/CoffeeBeltMap";
 
 const SPECIES = [
   { common: "Arabica", accent: "#5a3420", rgb: "90,52,32", desc: "Aromatik ve kompleks — dünya kahve üretiminin çoğunluğu.", tilt: -3 },
@@ -81,7 +83,7 @@ export default function HomePage() {
       </section>
 
       <div className="max-w-5xl mx-auto px-6 py-12 space-y-14">
-        <section>
+        <Reveal>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-[var(--color-coffee)]">İlanlar</h2>
             <Link href="/urunler" className="link text-sm">
@@ -92,17 +94,17 @@ export default function HomePage() {
             <p className="text-[var(--text-secondary)]">Henüz ilan yok</p>
           ) : (
             <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
-              <table className="w-full text-sm border-collapse">
+              <table className="w-full text-sm border-collapse data-table">
                 <thead>
-                  <tr className="text-left bg-[var(--color-coffee)] text-[var(--color-cream)] text-xs uppercase tracking-wide">
-                    <th className="py-3 px-4 font-medium">Ürün</th>
-                    <th className="py-3 px-4 font-medium">Ülke</th>
-                    <th className="py-3 px-4 font-medium">Tür</th>
-                    <th className="py-3 px-4 font-medium">Kg Fiyatı</th>
-                    <th className="py-3 px-4 font-medium">Stok (ton)</th>
-                    <th className="py-3 px-4 font-medium">Satıcı</th>
-                    <th className="py-3 px-4 font-medium">İlgili Kişi</th>
-                    <th className="py-3 px-4 font-medium">Telefon</th>
+                  <tr>
+                    <th className="py-3 px-4">Ürün</th>
+                    <th className="py-3 px-4">Ülke</th>
+                    <th className="py-3 px-4">Tür</th>
+                    <th className="py-3 px-4">Kg Fiyatı</th>
+                    <th className="py-3 px-4">Stok (ton)</th>
+                    <th className="py-3 px-4">Satıcı</th>
+                    <th className="py-3 px-4">İlgili Kişi</th>
+                    <th className="py-3 px-4">Telefon</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -132,9 +134,9 @@ export default function HomePage() {
               </table>
             </div>
           )}
-        </section>
+        </Reveal>
 
-        <section>
+        <Reveal>
           <div className="wood-panel">
             <div className="wood-panel-rule" />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 py-8 px-4">
@@ -155,9 +157,17 @@ export default function HomePage() {
             </div>
             <div className="wood-panel-rule" />
           </div>
-        </section>
+        </Reveal>
 
-        <section>
+        <Reveal>
+          <h2 className="text-xl font-semibold mb-2 text-[var(--color-coffee)]">Kahve Kuşağı</h2>
+          <p className="text-sm text-[var(--text-tertiary)] mb-5">
+            Çiğ kahve, ekvator çevresindeki "Kahve Kuşağı" boyunca Amerika, Afrika ve Asya'da yetişir
+          </p>
+          <CoffeeBeltMap />
+        </Reveal>
+
+        <Reveal>
           <h2 className="text-xl font-semibold mb-2 text-[var(--color-coffee)]">Yetkili Satıcılar</h2>
           <p className="text-sm text-[var(--text-tertiary)] mb-5">Rozetli, doğrulanmış çiğ kahve satıcılarımız</p>
           {verifiedSellers.length === 0 ? (
@@ -175,9 +185,9 @@ export default function HomePage() {
               ))}
             </div>
           )}
-        </section>
+        </Reveal>
 
-        <section>
+        <Reveal>
           <h2 className="text-xl font-semibold mb-2 text-[var(--color-coffee)]">Gerçekleşmiş Satışlar</h2>
           <p className="text-sm text-[var(--text-tertiary)] mb-5">Platformda tamamlanmış son işlemler</p>
           {completedSales.length === 0 ? (
@@ -200,7 +210,7 @@ export default function HomePage() {
               ))}
             </div>
           )}
-        </section>
+        </Reveal>
       </div>
     </div>
   );

@@ -94,9 +94,9 @@ export default function MyOffersPage() {
         <section className="space-y-2">
           <h2 className="font-semibold">Gelen Teklifler</h2>
           <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
-            <table className="w-full text-sm border-collapse">
+            <table className="w-full text-sm border-collapse data-table">
               <thead>
-                <tr className="text-left bg-[var(--color-coffee)] text-[var(--color-cream)] text-xs uppercase tracking-wide">
+                <tr>
                   <th className="py-2.5 px-4 font-medium">Teklif No</th>
                   <th className="py-2.5 px-4 font-medium">Ürün</th>
                   <th className="py-2.5 px-4 font-medium">Alıcı</th>
@@ -111,7 +111,7 @@ export default function MyOffersPage() {
                 {receivedList.map((o) => (
                   <tr key={o.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface-alt)]">
                     <td className="py-2 px-4">
-                      <button onClick={() => setDetail(o)} className="link font-medium">
+                      <button onClick={() => setDetail(o)} className="link ref-no">
                         #{o.offer_no}
                       </button>
                     </td>
@@ -124,7 +124,7 @@ export default function MyOffersPage() {
                     </td>
                     <td className="py-2 px-4">
                       {o.order ? (
-                        <Link href="/panel/siparislerim" className="link">
+                        <Link href="/panel/siparislerim" className="link ref-no">
                           #{o.order.order_no}
                         </Link>
                       ) : (
@@ -166,9 +166,9 @@ export default function MyOffersPage() {
           </p>
         ) : (
           <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
-            <table className="w-full text-sm border-collapse">
+            <table className="w-full text-sm border-collapse data-table">
               <thead>
-                <tr className="text-left bg-[var(--color-coffee)] text-[var(--color-cream)] text-xs uppercase tracking-wide">
+                <tr>
                   <th className="py-2.5 px-4 font-medium">Teklif No</th>
                   <th className="py-2.5 px-4 font-medium">Ürün</th>
                   <th className="py-2.5 px-4 font-medium">Fiyat</th>
@@ -181,7 +181,7 @@ export default function MyOffersPage() {
                 {sentList.map((o) => (
                   <tr key={o.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface-alt)]">
                     <td className="py-2 px-4">
-                      <button onClick={() => setDetail(o)} className="link font-medium">
+                      <button onClick={() => setDetail(o)} className="link ref-no">
                         #{o.offer_no}
                       </button>
                     </td>
@@ -193,7 +193,7 @@ export default function MyOffersPage() {
                     </td>
                     <td className="py-2 px-4">
                       {o.order ? (
-                        <Link href="/panel/siparislerim" className="link">
+                        <Link href="/panel/siparislerim" className="link ref-no">
                           #{o.order.order_no}
                         </Link>
                       ) : (
@@ -231,7 +231,7 @@ export default function MyOffersPage() {
               <>
                 <div className="text-[var(--text-tertiary)]">Sipariş No</div>
                 <div>
-                  <Link href="/panel/siparislerim" className="link">
+                  <Link href="/panel/siparislerim" className="link ref-no">
                     #{detail.order.order_no}
                   </Link>
                 </div>

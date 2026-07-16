@@ -96,9 +96,9 @@ export default function MyOrdersPage() {
         </p>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
-          <table className="w-full text-sm border-collapse">
+          <table className="w-full text-sm border-collapse data-table">
             <thead>
-              <tr className="text-left bg-[var(--color-coffee)] text-[var(--color-cream)] text-xs uppercase tracking-wide">
+              <tr>
                 <th className="py-2.5 px-4 font-medium">Sipariş No</th>
                 <th className="py-2.5 px-4 font-medium">Teklif No</th>
                 <th className="py-2.5 px-4 font-medium">Ürün</th>
@@ -112,11 +112,11 @@ export default function MyOrdersPage() {
               {orders.map((o) => (
                 <tr key={o.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface-alt)]">
                   <td className="py-2 px-4">
-                    <button onClick={() => setDetail(o)} className="link font-medium">
+                    <button onClick={() => setDetail(o)} className="link ref-no">
                       #{o.order_no}
                     </button>
                   </td>
-                  <td className="py-2 px-4">{o.offer ? `#${o.offer.offer_no}` : "—"}</td>
+                  <td className="py-2 px-4 ref-no">{o.offer ? `#${o.offer.offer_no}` : "—"}</td>
                   <td className="py-2 px-4">{o.product.title}</td>
                   <td className="py-2 px-4">{formatNumber(o.quantity_kg / 1000, 1)} ton</td>
                   <td className="py-2 px-4 font-semibold text-[var(--color-coffee)]">
@@ -144,7 +144,7 @@ export default function MyOrdersPage() {
                   {detail.offer && (
                     <>
                       <div className="text-[var(--text-tertiary)]">Teklif No</div>
-                      <div>#{detail.offer.offer_no}</div>
+                      <div className="ref-no">#{detail.offer.offer_no}</div>
                     </>
                   )}
                   <div className="text-[var(--text-tertiary)]">Miktar</div>

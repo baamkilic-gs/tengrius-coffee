@@ -1,49 +1,51 @@
-/* DESIGN.md §3 — Fraunces (baslik) + Source Sans 3 (govde); Caveat yalnizca kraft etiketlerde */
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=Caveat:wght@600;700&display=swap");
+/* DESIGN.md §3 — Space Grotesk (baslik+govde) + IBM Plex Mono (etiket/veri/referans no) */
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
 @import "tailwindcss";
 
 :root {
-  --background: #f5f0e8;
-  --foreground: #2b1a12;
+  --background: #f7f4ee;
+  --foreground: #241b14;
   color-scheme: light;
 
-  /* DESIGN.md §2 — Organic Natural palet */
-  --bg: #f5f0e8;
-  --surface: #fefcf9;
-  --surface-alt: #efe6d6;
-  --border: #ddd0ba;
-  --text-secondary: #6b5c4c;
-  --text-tertiary: #9c8b76;
-  --success: #5b8c5a;
+  /* DESIGN.md §2 — Teknik Kahve Etiketi palet */
+  --bg: #f7f4ee;
+  --surface: #ffffff;
+  --surface-alt: #efeae1;
+  --border: #ded6c7;
+  --text-primary: #241b14;
+  --text-secondary: #5b4f42;
+  --text-tertiary: #8a7d6c;
+  --success: #4a7a3d;
+  --success-bg: #e8efe2;
   --error: #b5482f;
-  --accent-strong-rgb: 59, 36, 23;
-  --accent-rgb: 196, 149, 106;
+  --error-bg: #f5e6e1;
+  --accent-strong-rgb: 36, 27, 20;
+  --accent-rgb: 200, 118, 58;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  /* Tengrius Coffee kurumsal palet — koyu kahverengi (accent-strong) + kil/altın vurgu (accent) */
-  --color-coffee: #3b2417;
-  --color-coffee-dark: #241309;
-  --color-cream: #fdf8f2;
-  --color-gold: #c4956a;
-  --color-gold-light: #d9b48c;
-  --font-sans: "Source Sans 3", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  --font-heading: "Fraunces", ui-serif, Georgia, serif;
-  --font-mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  /* Tengrius Coffee — sicak notr zemin + tek kehribar vurgu rengi */
+  --color-coffee: #241b14;
+  --color-coffee-dark: #241b14;
+  --color-cream: #fdfbf7;
+  --color-gold: #c8763a;
+  --color-gold-light: #e0955c;
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-heading: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
 }
 
 body {
-  background:
-    linear-gradient(rgba(245, 240, 232, 0.94), rgba(245, 240, 232, 0.97)),
-    url("/coffee-beans-bg.jpg") center/cover fixed no-repeat;
+  background: var(--bg);
   color: var(--foreground);
   font-family: var(--font-sans);
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
+  font-weight: 600;
 }
 
 /* DESIGN.md §4 — bilesenler */
@@ -51,9 +53,9 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-sans);
   font-weight: 600;
   font-size: 0.875rem;
-  padding: 0.7rem 1.5rem;
-  border-radius: 999px;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease, opacity 0.18s ease;
+  padding: 0.65rem 1.35rem;
+  border-radius: 10px;
+  transition: transform 0.15s ease, box-shadow 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -61,19 +63,18 @@ h1, h2, h3, h4, h5, h6 {
 }
 .btn-primary {
   background: var(--color-gold);
-  color: var(--color-coffee-dark);
-  border: none;
+  color: #ffffff;
+  border: 1px solid var(--color-gold);
 }
 .btn-primary:hover {
   background: var(--color-gold-light);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(var(--accent-rgb), 0.35);
+  border-color: var(--color-gold-light);
 }
 .btn-primary:active {
-  transform: translateY(0);
+  transform: scale(0.97);
 }
 .btn-primary:focus-visible {
-  outline: 2px solid var(--color-coffee);
+  outline: 2px solid var(--color-gold);
   outline-offset: 2px;
 }
 .btn-primary:disabled {
@@ -88,7 +89,8 @@ h1, h2, h3, h4, h5, h6 {
   opacity: 0.9;
 }
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--color-gold);
+  color: var(--color-gold);
   opacity: 1;
 }
 .btn-secondary:focus-visible {
@@ -99,52 +101,77 @@ h1, h2, h3, h4, h5, h6 {
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 1px 2px rgba(var(--accent-strong-rgb), 0.04);
+  box-shadow: 0 1px 2px rgba(var(--accent-strong-rgb), 0.03);
   transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
 }
 .card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-2px);
   border-color: var(--color-gold);
-  box-shadow: 0 16px 32px rgba(var(--accent-strong-rgb), 0.12);
+  box-shadow: 0 8px 20px rgba(var(--accent-strong-rgb), 0.06);
 }
 .card:focus-within {
   border-color: var(--color-gold);
 }
 
+/* Etiket/rozet — DESIGN.md: her rozet/referans mono + uppercase + tracking */
 .badge {
+  font-family: var(--font-mono);
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  padding: 0.25rem 0.65rem;
-  border-radius: 999px;
-  background: rgba(var(--accent-rgb), 0.15);
-  color: var(--color-coffee);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  background: rgba(var(--accent-rgb), 0.12);
+  color: var(--color-gold);
 }
 .badge-verified {
-  background: rgba(91, 140, 90, 0.15);
+  background: var(--success-bg);
   color: var(--success);
 }
 
+/* Teklif/siparis referans numaralari */
+.ref-no {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  color: var(--color-gold);
+}
+
+/* Veri tablolari (Ilanlar, Tekliflerim, Siparislerim, Urunlerim) */
+.data-table thead tr {
+  background: var(--color-coffee-dark);
+  color: var(--color-cream);
+}
+.data-table th {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .link {
-  color: var(--color-coffee);
+  color: var(--color-gold);
   text-decoration: underline;
-  text-decoration-color: rgba(var(--accent-strong-rgb), 0.35);
+  text-decoration-color: rgba(var(--accent-rgb), 0.4);
   text-underline-offset: 3px;
   transition: text-decoration-color 0.15s ease;
 }
 .link:hover {
-  text-decoration-color: var(--color-coffee);
+  text-decoration-color: var(--color-gold);
 }
 
 .input {
   background: var(--surface);
   border: 1.5px solid var(--border);
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 0.6rem 0.9rem;
   font-family: var(--font-sans);
   font-size: 0.875rem;
@@ -156,40 +183,42 @@ h1, h2, h3, h4, h5, h6 {
 .input:focus {
   outline: none;
   border-color: var(--color-gold);
-  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.18);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.16);
 }
 .input:disabled {
   opacity: 0.5;
 }
 
-/* DESIGN.md §7 — L1 giris animasyonu */
+/* DESIGN.md §7 — L2 scroll-reveal girisi (yalniz "vitrin" sayfalarinda: anasayfa) */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal.in-view > *:nth-child(1) { transition-delay: 0s; }
+.reveal.in-view > *:nth-child(2) { transition-delay: 0.08s; }
+.reveal.in-view > *:nth-child(3) { transition-delay: 0.16s; }
+.reveal.in-view > *:nth-child(4) { transition-delay: 0.24s; }
+
+/* Geriye donuk: eski enter-fade-up cagrilarini reveal ile ayni hissi versin diye tutuyoruz */
 @keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .enter-fade-up {
   animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
-.enter-fade-up:nth-child(2) {
-  animation-delay: 0.08s;
-}
-.enter-fade-up:nth-child(3) {
-  animation-delay: 0.16s;
-}
+.enter-fade-up:nth-child(2) { animation-delay: 0.08s; }
+.enter-fade-up:nth-child(3) { animation-delay: 0.16s; }
 
-/* Kahve turleri — ahsap panel + kase + kraft etiket */
-/* Ahsap damar dokusu: feTurbulence ile uretilen prosedurel gurultu (harici
-   fotograf yerine) — damarlar plank uzunlugu boyunca (yatay) uzasin diye
-   baseFrequency X ekseninde dusuk, Y ekseninde yuksek. */
+/* Kahve turleri — ahsap panel + kase + mono etiket */
 .wood-panel {
   position: relative;
-  border-radius: 16px;
+  border-radius: 12px;
   background:
     radial-gradient(120% 100% at 50% 0%, transparent 45%, rgba(0, 0, 0, 0.32) 100%),
     repeating-linear-gradient(
@@ -211,7 +240,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .wood-panel-rule {
   height: 2px;
-  background: #c0602f;
+  background: var(--color-gold);
   opacity: 0.75;
 }
 
@@ -240,20 +269,22 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .kraft-tag {
-  background: #d9c19a;
-  color: #3b2417;
-  font-family: "Caveat", cursive;
-  font-weight: 700;
-  font-size: 1.15rem;
-  padding: 0.35rem 0.9rem;
-  border-radius: 3px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+  background: var(--color-cream);
+  color: var(--color-coffee-dark);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.8rem;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* Arka plan fotografi: Indra Projects, Unsplash License (ucretsiz, ticari kullanima acik, atif zorunlu degil) */
 .hero-gradient {
   background:
-    radial-gradient(120% 120% at 15% 0%, rgba(74, 45, 28, 0.85) 0%, rgba(59, 36, 23, 0.9) 45%, rgba(36, 19, 9, 0.96) 100%),
+    radial-gradient(120% 120% at 15% 0%, rgba(36, 27, 20, 0.88) 0%, rgba(36, 27, 20, 0.92) 45%, rgba(20, 14, 10, 0.96) 100%),
     url("/coffee-beans-bg.jpg") center/cover no-repeat;
 }
 
@@ -269,6 +300,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .ticker-track {
   width: max-content;
+  font-family: var(--font-mono);
   /* animation-duration bilerek buraya yazılmıyor — genişliğe göre JS'ten
      (RateTicker.tsx) inline style ile ayarlanıyor, sabit piksel/saniye hızı için. */
   animation-name: ticker-scroll;
@@ -289,6 +321,11 @@ h1, h2, h3, h4, h5, h6 {
   transform: rotate(45deg);
 }
 
+/* Nav — L2 scroll durumu */
+.nav-scrolled {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
 /* DESIGN.md §7 — reduced motion fallback */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -297,5 +334,9 @@ h1, h2, h3, h4, h5, h6 {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
+  }
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }

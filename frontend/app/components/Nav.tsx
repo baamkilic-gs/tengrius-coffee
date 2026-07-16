@@ -9,6 +9,7 @@ import TengriusLogo from "./TengriusLogo";
 export default function Nav() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [org, setOrg] = useState<AuthOrganization | null>(null);
+  const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -17,13 +18,24 @@ export default function Nav() {
     setOrg(getOrganization());
   }, [pathname]);
 
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   const logout = () => {
     clearSession();
     router.push("/");
   };
 
   return (
-    <header className="bg-[var(--color-coffee)] text-[var(--color-cream)] px-6 py-3 flex items-center justify-between">
+    <header
+      className={`bg-[var(--color-coffee)] text-[var(--color-cream)] px-6 py-3 flex items-center justify-between sticky top-0 z-30 transition-shadow duration-300 ${
+        scrolled ? "nav-scrolled" : ""
+      }`}
+    >
       <Link href="/" className="brand-logo flex items-center gap-2 shrink-0">
         <TengriusLogo size={24} className="tengrius-sun text-[var(--color-gold-light)]" />
         <span className="flex items-baseline gap-2">

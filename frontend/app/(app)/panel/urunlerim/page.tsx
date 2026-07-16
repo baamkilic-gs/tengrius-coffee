@@ -292,9 +292,9 @@ export default function MyProductsPage() {
         <p className="text-[var(--text-secondary)]">Yükleniyor…</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
+          <table className="w-full text-sm border-collapse data-table">
             <thead>
-              <tr className="text-left border-b border-[var(--color-gold)]">
+              <tr>
                 <th className="py-2">Ülke</th>
                 <th className="py-2">Başlık</th>
                 <th className="py-2">Açıklama</th>

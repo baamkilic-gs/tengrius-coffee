@@ -186,9 +186,9 @@ export default function ProductsListPage() {
         <div className="relative">
           {openColumn && <div className="fixed inset-0 z-10" onClick={() => setOpenColumn(null)} />}
           <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
-            <table className="w-full text-sm border-collapse">
+            <table className="w-full text-sm border-collapse data-table">
               <thead>
-                <tr className="text-left bg-[var(--color-coffee)] text-[var(--color-cream)] text-xs uppercase tracking-wide">
+                <tr>
                   {COLUMNS.map((col) => (
                     <th key={col.key} className="py-3 px-4 relative">
                       <ColumnFilterHeader
