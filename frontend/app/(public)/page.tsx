@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "../../lib/api";
 import { formatNumber } from "../../lib/format";
+import { flagFor } from "../../lib/countryFlags";
 
 const SPECIES = [
   { common: "Arabica", accent: "#5a3420", rgb: "90,52,32", desc: "Aromatik ve kompleks — dünya kahve üretiminin çoğunluğu.", tilt: -3 },
@@ -20,7 +21,7 @@ interface Listing {
   price_per_kg: number;
   currency: string;
   quantity_tons: number;
-  seller: { name: string; verified: boolean };
+  seller: { name: string; verified: boolean; contact_name: string | null; contact_phone: string | null };
 }
 
 interface CompletedSale {
@@ -84,27 +85,51 @@ export default function HomePage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-[var(--color-coffee)]">İlanlar</h2>
             <Link href="/urunler" className="link text-sm">
-              Tüm ürünleri gör →
+              Tüm ilanları gör →
             </Link>
           </div>
           {listings.length === 0 ? (
             <p className="text-[var(--text-secondary)]">Henüz ilan yok</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {listings.map((p) => (
-                <Link key={p.id} href={`/urunler/${p.id}`} className="card block">
-                  <p className="font-medium">{p.title}</p>
-                  <p className="text-sm text-[var(--text-secondary)]">
-                    {p.country} · {p.bean_type}
-                  </p>
-                  <p className="mt-3 text-[var(--color-coffee)] font-semibold">
-                    {formatNumber(p.price_per_kg, 4)} {p.currency} / kg
-                  </p>
-                  <p className="text-xs text-[var(--text-tertiary)] mt-1">
-                    {p.seller.name} · Stok: {formatNumber(p.quantity_tons, 1)} ton
-                  </p>
-                </Link>
-              ))}
+            <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="text-left bg-[var(--color-coffee)] text-[var(--color-cream)] text-xs uppercase tracking-wide">
+                    <th className="py-3 px-4 font-medium">Ürün</th>
+                    <th className="py-3 px-4 font-medium">Ülke</th>
+                    <th className="py-3 px-4 font-medium">Tür</th>
+                    <th className="py-3 px-4 font-medium">Kg Fiyatı</th>
+                    <th className="py-3 px-4 font-medium">Stok (ton)</th>
+                    <th className="py-3 px-4 font-medium">Satıcı</th>
+                    <th className="py-3 px-4 font-medium">İlgili Kişi</th>
+                    <th className="py-3 px-4 font-medium">Telefon</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {listings.map((p) => (
+                    <tr key={p.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface-alt)]">
+                      <td className="py-2.5 px-4">
+                        <Link href={`/urunler/${p.id}`} className="link font-medium">
+                          {p.title}
+                        </Link>
+                      </td>
+                      <td className="py-2.5 px-4">
+                        {flagFor(p.country)} {p.country}
+                      </td>
+                      <td className="py-2.5 px-4">{p.bean_type}</td>
+                      <td className="py-2.5 px-4 font-semibold text-[var(--color-coffee)]">
+                        {formatNumber(p.price_per_kg, 4)} {p.currency}
+                      </td>
+                      <td className="py-2.5 px-4">{formatNumber(p.quantity_tons, 1)}</td>
+                      <td className="py-2.5 px-4 text-[var(--text-secondary)]">
+                        {p.seller.name} {p.seller.verified && <span className="badge badge-verified">Yetkili Satıcı</span>}
+                      </td>
+                      <td className="py-2.5 px-4">{p.seller.contact_name ?? "—"}</td>
+                      <td className="py-2.5 px-4">{p.seller.contact_phone ?? "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </section>
