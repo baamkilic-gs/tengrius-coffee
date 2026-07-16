@@ -184,18 +184,28 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Kahve turleri — ahsap panel + kase + kraft etiket */
+/* Ahsap damar dokusu: feTurbulence ile uretilen prosedurel gurultu (harici
+   fotograf yerine) — damarlar plank uzunlugu boyunca (yatay) uzasin diye
+   baseFrequency X ekseninde dusuk, Y ekseninde yuksek. */
 .wood-panel {
   position: relative;
   border-radius: 16px;
   background:
+    radial-gradient(120% 100% at 50% 0%, transparent 45%, rgba(0, 0, 0, 0.32) 100%),
     repeating-linear-gradient(
       90deg,
-      rgba(0, 0, 0, 0.06) 0px,
+      rgba(0, 0, 0, 0.16) 0px,
       transparent 3px,
-      transparent 38px,
-      rgba(0, 0, 0, 0.06) 40px
+      transparent 96px,
+      rgba(0, 0, 0, 0.16) 100px
     ),
-    linear-gradient(180deg, #8a6a4a 0%, #6b4a30 100%);
+    url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSczMDAnIGhlaWdodD0nMzAwJz48ZmlsdGVyIGlkPSd3Jz48ZmVUdXJidWxlbmNlIHR5cGU9J2ZyYWN0YWxOb2lzZScgYmFzZUZyZXF1ZW5jeT0nMC4wMSAwLjE1JyBudW1PY3RhdmVzPSc0JyBzZWVkPScxMScgcmVzdWx0PSduJy8+PGZlQ29sb3JNYXRyaXggaW49J24nIHR5cGU9J21hdHJpeCcgdmFsdWVzPScwIDAgMCAwIDAuNTUgIDAgMCAwIDAgMC4zNiAgMCAwIDAgMCAwLjIwICAwLjY1IDAgMCAwIDAuMDgnLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0nMTAwJScgaGVpZ2h0PScxMDAlJyBmaWx0ZXI9J3VybCgjdyknLz48L3N2Zz4K"),
+    linear-gradient(180deg, #8f6a46 0%, #6b4529 55%, #593a22 100%);
+  background-size:
+    100% 100%,
+    100% 100%,
+    260px 260px,
+    100% 100%;
   overflow: hidden;
 }
 

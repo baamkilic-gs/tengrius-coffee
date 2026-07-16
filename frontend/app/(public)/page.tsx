@@ -139,14 +139,18 @@ export default function HomePage() {
             <div className="wood-panel-rule" />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 py-8 px-4">
               {SPECIES.map((s) => (
-                <div
-                  key={s.common}
-                  className="bean-bowl"
-                  style={{
-                    backgroundImage: `linear-gradient(rgba(${s.rgb},0.42), rgba(${s.rgb},0.42)), url(/coffee-beans-bg.jpg)`,
-                  }}
-                  title={s.desc}
-                />
+                <div key={s.common} className="flex flex-col items-center gap-4 group">
+                  <div
+                    className="bean-bowl"
+                    style={{
+                      backgroundImage: `linear-gradient(rgba(${s.rgb},0.42), rgba(${s.rgb},0.42)), url(/coffee-beans-bg.jpg)`,
+                    }}
+                    title={s.desc}
+                  />
+                  <div className="kraft-tag" style={{ transform: `rotate(${s.tilt}deg)` }}>
+                    {s.common}
+                  </div>
+                </div>
               ))}
             </div>
             <div className="wood-panel-rule" />
