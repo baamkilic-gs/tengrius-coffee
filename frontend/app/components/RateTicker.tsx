@@ -30,6 +30,11 @@ export default function RateTicker() {
   const [rates, setRates] = useState<Rates | null>(null);
   const [trends, setTrends] = useState<Record<string, Trend>>({});
   const prevRef = useRef<Rates | null>(null);
+  const measureRef = useRef<HTMLSpanElement>(null);
+  // Track %-50 kayarak döngüye giriyor; bir kopya viewport'tan darsa döngü
+  // öncesi boşluk görünür — bu yüzden viewport genişliğine göre yeterli sayıda
+  // (çift adet) kopya render edilir.
+  const [repeatCount, setRepeatCount] = useState(6);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,6 +69,21 @@ export default function RateTicker() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!rates) return;
+    const measure = () => {
+      const copyWidth = measureRef.current?.offsetWidth;
+      if (!copyWidth) return;
+      // Her yarı en az bir viewport genişliğini doldurmalı — aksi halde döngü
+      // sırasında içerik biter, ekranda boşluk kalır.
+      const copiesPerHalf = Math.max(1, Math.ceil(window.innerWidth / copyWidth) + 1);
+      setRepeatCount((current) => Math.max(current, copiesPerHalf * 2));
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [rates]);
+
   if (!rates) return null;
 
   const items = [
@@ -74,21 +94,25 @@ export default function RateTicker() {
     { label: "BTC/USD", value: `$${fmt(rates.btc_usd, 0)}`, trend: trends.btc_usd },
   ];
 
-  // İçerik iki kez tekrarlanır — animasyon %-50 kayınca sorunsuz döngüye girer
-  const renderItems = (keyPrefix: string) =>
-    items.map((item, i) => (
-      <span key={`${keyPrefix}-${i}`} className="inline-flex items-center gap-2 px-6 whitespace-nowrap">
-        <span className="text-[var(--color-gold-light)] font-semibold">{item.label}</span>
-        <span className="text-[var(--color-cream)]">{item.value}</span>
-        <Arrow trend={item.trend ?? "flat"} />
-      </span>
-    ));
+  // İçerik çift sayıda kopyalanır — animasyon %-50 kayınca sorunsuz döngüye
+  // girer; kopya sayısı viewport'u dolduracak kadar olmalı (bkz. yukarıdaki
+  // ölçüm effect'i), yoksa döngü öncesi ekranda boşluk görünür.
+  const renderCopy = (copyIndex: number) => (
+    <span key={copyIndex} ref={copyIndex === 0 ? measureRef : undefined} className="inline-flex">
+      {items.map((item, i) => (
+        <span key={i} className="inline-flex items-center gap-2 px-6 whitespace-nowrap">
+          <span className="text-[var(--color-gold-light)] font-semibold">{item.label}</span>
+          <span className="text-[var(--color-cream)]">{item.value}</span>
+          <Arrow trend={item.trend ?? "flat"} />
+        </span>
+      ))}
+    </span>
+  );
 
   return (
     <div className="bg-[var(--color-coffee-dark)] overflow-hidden border-b border-black/30">
       <div className="ticker-track flex text-xs py-1.5">
-        {renderItems("a")}
-        {renderItems("b")}
+        {Array.from({ length: repeatCount }, (_, i) => renderCopy(i))}
       </div>
     </div>
   );
