@@ -24,7 +24,7 @@ export default function Nav() {
 
   return (
     <header className="bg-[var(--color-coffee)] text-[var(--color-cream)] px-6 py-3 flex items-center justify-between">
-      <Link href="/" className="brand-logo flex items-center gap-2">
+      <Link href="/" className="brand-logo flex items-center gap-2 shrink-0">
         <TengriusLogo size={24} className="tengrius-sun text-[var(--color-gold-light)]" />
         <span className="flex items-baseline gap-2">
           <span className="font-semibold text-lg text-[var(--color-gold-light)] font-[var(--font-heading)]">
@@ -33,16 +33,16 @@ export default function Nav() {
           <span className="text-xs text-[var(--color-cream)]/60 hidden sm:inline">Kahve Borsası</span>
         </span>
       </Link>
-      <nav className="flex items-center gap-4 text-sm">
+      <nav className="flex items-center gap-2 sm:gap-4 text-sm min-w-0">
         {user && org ? (
           <>
-            <span className="text-[var(--color-gold-light)]">
+            <span className="text-[var(--color-gold-light)] truncate max-w-[32vw] sm:max-w-none">
               {org.name} · {org.membership_tier === "PREMIUM" ? "Premium" : "Standart"}
             </span>
-            <Link href="/panel" className="hover:text-[var(--color-gold-light)] transition-colors">
+            <Link href="/panel" className="shrink-0 hover:text-[var(--color-gold-light)] transition-colors">
               Panel
             </Link>
-            <button onClick={logout} className="hover:text-[var(--color-gold-light)] transition-colors">
+            <button onClick={logout} className="shrink-0 hover:text-[var(--color-gold-light)] transition-colors">
               Çıkış
             </button>
           </>

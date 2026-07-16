@@ -63,11 +63,21 @@ export default function PanelHomePage() {
               e.preventDefault();
               load();
             }}
-            className="flex items-center gap-2 text-sm"
+            className="flex flex-wrap items-center gap-2 text-sm"
           >
-            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="input !py-1" />
+            <input
+              type="date"
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+              className="input !py-1 w-[9.5rem]"
+            />
             <span className="text-[var(--text-tertiary)]">–</span>
-            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="input !py-1" />
+            <input
+              type="date"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              className="input !py-1 w-[9.5rem]"
+            />
             <button type="submit" className="btn btn-secondary !py-1 !px-3 !text-xs">
               Filtrele
             </button>
