@@ -32,10 +32,34 @@ export default function Nav() {
 
   return (
     <header
-      className={`bg-[var(--color-coffee)] text-[var(--color-cream)] px-6 py-3 flex items-center justify-between sticky top-0 z-30 transition-shadow duration-300 ${
+      className={`bg-[var(--color-coffee)] text-[var(--color-cream)] px-6 py-3 flex items-center gap-3 sticky top-0 z-30 transition-shadow duration-300 ${
         scrolled ? "nav-scrolled" : ""
       }`}
     >
+      <div className="flex items-center gap-1 shrink-0">
+        <button
+          onClick={() => router.back()}
+          aria-label="Geri"
+          title="Geri"
+          className="p-2 rounded-full hover:bg-white/10 transition-colors"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+        <button
+          onClick={() => window.location.reload()}
+          aria-label="Yenile"
+          title="Yenile"
+          className="p-2 rounded-full hover:bg-white/10 transition-colors"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M23 4v6h-6" />
+            <path d="M1 20v-6h6" />
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+          </svg>
+        </button>
+      </div>
       <Link href="/" className="brand-logo flex items-center gap-2 shrink-0">
         <TengriusLogo size={24} className="tengrius-sun text-[var(--color-gold-light)]" />
         <span className="flex items-baseline gap-2">
@@ -45,7 +69,7 @@ export default function Nav() {
           <span className="text-xs text-[var(--color-cream)]/60 hidden sm:inline">Kahve Borsası</span>
         </span>
       </Link>
-      <nav className="flex items-center gap-2 sm:gap-4 text-sm min-w-0">
+      <nav className="flex items-center gap-2 sm:gap-4 text-sm min-w-0 ml-auto">
         {user && org ? (
           <>
             <span className="text-[var(--color-gold-light)] truncate max-w-[32vw] sm:max-w-none">
