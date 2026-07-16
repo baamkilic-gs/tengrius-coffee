@@ -3,6 +3,7 @@ import "flag-icons/css/flag-icons.min.css";
 import "./globals.css";
 import Nav from "./components/Nav";
 import RateTicker from "./components/RateTicker";
+import ActionBar from "./components/ActionBar";
 import { ToastProvider } from "./components/Toast";
 
 export const metadata: Metadata = {
@@ -21,6 +22,7 @@ export default function RootLayout({
         <ToastProvider>
           <Nav />
           <RateTicker />
+          <ActionBar />
           <main className="flex-1">{children}</main>
         </ToastProvider>
       </body>

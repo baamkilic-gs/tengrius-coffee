@@ -36,30 +36,6 @@ export default function Nav() {
         scrolled ? "nav-scrolled" : ""
       }`}
     >
-      <div className="flex items-center gap-1 shrink-0">
-        <button
-          onClick={() => router.back()}
-          aria-label="Geri"
-          title="Geri"
-          className="p-2 rounded-full hover:bg-white/10 transition-colors"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </button>
-        <button
-          onClick={() => window.location.reload()}
-          aria-label="Yenile"
-          title="Yenile"
-          className="p-2 rounded-full hover:bg-white/10 transition-colors"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M23 4v6h-6" />
-            <path d="M1 20v-6h6" />
-            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-          </svg>
-        </button>
-      </div>
       <Link href="/" className="brand-logo flex items-center gap-2 shrink-0">
         <TengriusLogo size={24} className="tengrius-sun text-[var(--color-gold-light)]" />
         <span className="flex items-baseline gap-2">

@@ -11,7 +11,9 @@
   --bg: #f7f4ee;
   --surface: #ffffff;
   --surface-alt: #efeae1;
+  --surface-hover: #e5ded0;
   --border: #ded6c7;
+  --border-hover: #c8763a;
   --text-primary: #241b14;
   --text-secondary: #5b4f42;
   --text-tertiary: #8a7d6c;
@@ -204,13 +206,26 @@ h1, h2, h3, h4, h5, h6 {
 .reveal.in-view > *:nth-child(3) { transition-delay: 0.16s; }
 .reveal.in-view > *:nth-child(4) { transition-delay: 0.24s; }
 
-/* Toast pop-up girisi (Toast.tsx) */
-@keyframes toast-in {
-  from { opacity: 0; transform: translateY(12px) scale(0.97); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+/* Toast pop-up: ekran ortasi, kisa sureli, arka planı blurlar (Toast.tsx) */
+@keyframes toast-backdrop-pulse {
+  0% { opacity: 0; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); }
+  15% { opacity: 1; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  78% { opacity: 1; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  100% { opacity: 0; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); }
 }
-.toast-in {
-  animation: toast-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+.toast-backdrop {
+  background: rgba(36, 27, 20, 0.12);
+  animation: toast-backdrop-pulse 1.3s ease both;
+}
+@keyframes toast-center-pop {
+  0% { opacity: 0; transform: scale(0.85) translateY(8px); }
+  15% { opacity: 1; transform: scale(1.02) translateY(0); }
+  22% { transform: scale(1) translateY(0); }
+  80% { opacity: 1; transform: scale(1) translateY(0); }
+  100% { opacity: 0; transform: scale(0.96) translateY(-6px); }
+}
+.toast-center-in {
+  animation: toast-center-pop 1.3s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* Geriye donuk: eski enter-fade-up cagrilarini reveal ile ayni hissi versin diye tutuyoruz */

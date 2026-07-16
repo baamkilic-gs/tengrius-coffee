@@ -24,25 +24,37 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     setToasts((prev) => [...prev, { id, message, variant }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 3500);
+    }, 1300);
   }, []);
 
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 max-w-[90vw] w-80">
-        {toasts.map((t) => (
-          <div
-            key={t.id}
-            className={`toast-in card !py-3 !px-4 !rounded-[10px] text-sm shadow-lg flex items-center gap-2 ${
-              t.variant === "success" ? "border-l-4 border-l-[var(--success)]" : "border-l-4 border-l-[var(--error)]"
-            }`}
-          >
-            <span>{t.variant === "success" ? "✓" : "⚠"}</span>
-            <span>{t.message}</span>
+      {toasts.length > 0 && (
+        <div className="toast-backdrop fixed inset-0 z-[99] flex items-center justify-center pointer-events-none">
+          <div className="flex flex-col gap-3">
+            {toasts.map((t) => (
+              <div
+                key={t.id}
+                className={`toast-center-in flex items-center gap-3 bg-[var(--surface)] rounded-[14px] shadow-2xl px-6 py-5 border-2 ${
+                  t.variant === "success" ? "border-[var(--success)]" : "border-[var(--error)]"
+                }`}
+              >
+                <span
+                  className={`flex items-center justify-center w-9 h-9 rounded-full shrink-0 text-lg ${
+                    t.variant === "success"
+                      ? "bg-[var(--success-bg)] text-[var(--success)]"
+                      : "bg-[var(--error-bg)] text-[var(--error)]"
+                  }`}
+                >
+                  {t.variant === "success" ? "✓" : "⚠"}
+                </span>
+                <span className="text-base font-semibold text-[var(--text-primary)]">{t.message}</span>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      )}
     </ToastContext.Provider>
   );
 }
