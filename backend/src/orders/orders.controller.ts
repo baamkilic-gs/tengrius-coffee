@@ -54,6 +54,7 @@ export class OrdersController {
         product: { select: { id: true, title: true } },
         buyer: { select: ORG_CONTACT_SELECT },
         seller: { select: ORG_CONTACT_SELECT },
+        offer: { select: { id: true, offer_no: true } },
       },
       orderBy: { created_at: 'desc' },
     });

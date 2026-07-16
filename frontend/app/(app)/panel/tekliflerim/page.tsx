@@ -5,30 +5,44 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { api, getOrganization } from "../../../../lib/api";
 import { formatNumber } from "../../../../lib/format";
+import DetailModal from "../../../components/DetailModal";
 
 interface Offer {
   id: string;
+  offer_no: number;
   offer_price: number;
   quantity_kg: number;
   status: string;
   order_id: string | null;
+  order: { id: string; order_no: number } | null;
   message: string | null;
+  created_at: string;
   product: { id: string; title: string };
   buyer?: { id: string; name: string; verified: boolean };
 }
 
-const STATUS_STYLE: Record<string, string> = {
-  ACCEPTED: "border-l-4 border-l-[var(--success)]",
-  REJECTED: "border-l-4 border-l-[var(--error)] opacity-70",
-  PENDING: "",
+const STATUS_LABEL: Record<string, string> = {
+  ACCEPTED: "Kabul Edildi",
+  REJECTED: "Reddedildi",
+  PENDING: "Bekliyor",
 };
 
+const STATUS_CLASS: Record<string, string> = {
+  ACCEPTED: "text-[var(--success)] font-medium",
+  REJECTED: "text-[var(--error)] font-medium",
+  PENDING: "text-[var(--text-secondary)]",
+};
+
+function StatusLabel({ status }: { status: string }) {
+  return <span className={STATUS_CLASS[status]}>{STATUS_LABEL[status] ?? status}</span>;
+}
+
 function groupByStatus(offers: Offer[]) {
-  return {
-    accepted: offers.filter((o) => o.status === "ACCEPTED"),
-    pending: offers.filter((o) => o.status === "PENDING"),
-    rejected: offers.filter((o) => o.status === "REJECTED"),
-  };
+  return [
+    ...offers.filter((o) => o.status === "ACCEPTED"),
+    ...offers.filter((o) => o.status === "PENDING"),
+    ...offers.filter((o) => o.status === "REJECTED"),
+  ];
 }
 
 export default function MyOffersPage() {
@@ -36,6 +50,7 @@ export default function MyOffersPage() {
   const [received, setReceived] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
   const [resolveError, setResolveError] = useState<string | null>(null);
+  const [detail, setDetail] = useState<Offer | null>(null);
   const org = getOrganization();
   const canSell = org?.type === "SELLER";
 
@@ -67,8 +82,8 @@ export default function MyOffersPage() {
 
   if (loading) return <p className="text-[var(--text-secondary)]">Yükleniyor…</p>;
 
-  const receivedGroups = groupByStatus(received);
-  const sentGroups = groupByStatus(sent);
+  const receivedList = groupByStatus(received);
+  const sentList = groupByStatus(sent);
 
   return (
     <div className="space-y-8">
@@ -78,35 +93,64 @@ export default function MyOffersPage() {
       {received.length > 0 && (
         <section className="space-y-2">
           <h2 className="font-semibold">Gelen Teklifler</h2>
-          {[...receivedGroups.accepted, ...receivedGroups.pending, ...receivedGroups.rejected].map((o) => (
-            <div key={o.id} className={`card flex items-center justify-between text-sm ${STATUS_STYLE[o.status]}`}>
-              <div>
-                <p className="font-medium">{o.product.title}</p>
-                <p className="text-[var(--text-secondary)]">
-                  {o.buyer?.name} — {formatNumber(o.offer_price, 4)} USD/kg × {formatNumber(o.quantity_kg, 0)} kg —{" "}
-                  {o.status}
-                </p>
-              </div>
-              {o.status === "PENDING" && (
-                <div className="flex gap-2">
-                  <button onClick={() => resolve(o.id, "accept")} className="btn btn-primary !py-1 !px-3 !text-xs">
-                    Kabul Et
-                  </button>
-                  <button
-                    onClick={() => resolve(o.id, "reject")}
-                    className="border border-[var(--border)] px-3 py-1 rounded-full text-xs hover:border-[var(--color-gold)] transition-colors"
-                  >
-                    Reddet
-                  </button>
-                </div>
-              )}
-              {o.status === "ACCEPTED" && o.order_id && (
-                <Link href="/panel/siparislerim" className="link text-xs">
-                  Siparişi görüntüle →
-                </Link>
-              )}
-            </div>
-          ))}
+          <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="text-left bg-[var(--color-coffee)] text-[var(--color-cream)] text-xs uppercase tracking-wide">
+                  <th className="py-2.5 px-4 font-medium">Teklif No</th>
+                  <th className="py-2.5 px-4 font-medium">Ürün</th>
+                  <th className="py-2.5 px-4 font-medium">Alıcı</th>
+                  <th className="py-2.5 px-4 font-medium">Fiyat</th>
+                  <th className="py-2.5 px-4 font-medium">Miktar</th>
+                  <th className="py-2.5 px-4 font-medium">Durum</th>
+                  <th className="py-2.5 px-4 font-medium">Sipariş No</th>
+                  <th className="py-2.5 px-4 font-medium"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {receivedList.map((o) => (
+                  <tr key={o.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface-alt)]">
+                    <td className="py-2 px-4">
+                      <button onClick={() => setDetail(o)} className="link font-medium">
+                        #{o.offer_no}
+                      </button>
+                    </td>
+                    <td className="py-2 px-4">{o.product.title}</td>
+                    <td className="py-2 px-4">{o.buyer?.name}</td>
+                    <td className="py-2 px-4">{formatNumber(o.offer_price, 4)} USD/kg</td>
+                    <td className="py-2 px-4">{formatNumber(o.quantity_kg, 0)} kg</td>
+                    <td className="py-2 px-4">
+                      <StatusLabel status={o.status} />
+                    </td>
+                    <td className="py-2 px-4">
+                      {o.order ? (
+                        <Link href="/panel/siparislerim" className="link">
+                          #{o.order.order_no}
+                        </Link>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td className="py-2 px-4">
+                      {o.status === "PENDING" && (
+                        <div className="flex gap-2 justify-end">
+                          <button onClick={() => resolve(o.id, "accept")} className="btn btn-primary !py-1 !px-3 !text-xs">
+                            Kabul Et
+                          </button>
+                          <button
+                            onClick={() => resolve(o.id, "reject")}
+                            className="border border-[var(--border)] px-3 py-1 rounded-full text-xs hover:border-[var(--color-gold)] transition-colors"
+                          >
+                            Reddet
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
       )}
 
@@ -121,23 +165,89 @@ export default function MyOffersPage() {
             gidip "Teklif Ver" formunu kullanın (Premium üyelik gerekir).
           </p>
         ) : (
-          [...sentGroups.accepted, ...sentGroups.pending, ...sentGroups.rejected].map((o) => (
-            <div key={o.id} className={`card flex items-center justify-between text-sm ${STATUS_STYLE[o.status]}`}>
-              <div>
-                <p className="font-medium">{o.product.title}</p>
-                <p className="text-[var(--text-secondary)]">
-                  {formatNumber(o.offer_price, 4)} USD/kg × {formatNumber(o.quantity_kg, 0)} kg — {o.status}
-                </p>
-              </div>
-              {o.status === "ACCEPTED" && o.order_id && (
-                <Link href="/panel/siparislerim" className="link text-xs">
-                  Siparişi görüntüle →
-                </Link>
-              )}
-            </div>
-          ))
+          <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="text-left bg-[var(--color-coffee)] text-[var(--color-cream)] text-xs uppercase tracking-wide">
+                  <th className="py-2.5 px-4 font-medium">Teklif No</th>
+                  <th className="py-2.5 px-4 font-medium">Ürün</th>
+                  <th className="py-2.5 px-4 font-medium">Fiyat</th>
+                  <th className="py-2.5 px-4 font-medium">Miktar</th>
+                  <th className="py-2.5 px-4 font-medium">Durum</th>
+                  <th className="py-2.5 px-4 font-medium">Sipariş No</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sentList.map((o) => (
+                  <tr key={o.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface-alt)]">
+                    <td className="py-2 px-4">
+                      <button onClick={() => setDetail(o)} className="link font-medium">
+                        #{o.offer_no}
+                      </button>
+                    </td>
+                    <td className="py-2 px-4">{o.product.title}</td>
+                    <td className="py-2 px-4">{formatNumber(o.offer_price, 4)} USD/kg</td>
+                    <td className="py-2 px-4">{formatNumber(o.quantity_kg, 0)} kg</td>
+                    <td className="py-2 px-4">
+                      <StatusLabel status={o.status} />
+                    </td>
+                    <td className="py-2 px-4">
+                      {o.order ? (
+                        <Link href="/panel/siparislerim" className="link">
+                          #{o.order.order_no}
+                        </Link>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
+
+      {detail && (
+        <DetailModal title={`Teklif #${detail.offer_no}`} onClose={() => setDetail(null)}>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+            <div className="text-[var(--text-tertiary)]">Ürün</div>
+            <div>{detail.product.title}</div>
+            {detail.buyer && (
+              <>
+                <div className="text-[var(--text-tertiary)]">Alıcı</div>
+                <div>{detail.buyer.name}</div>
+              </>
+            )}
+            <div className="text-[var(--text-tertiary)]">Kg Fiyatı</div>
+            <div>{formatNumber(detail.offer_price, 4)} USD</div>
+            <div className="text-[var(--text-tertiary)]">Miktar</div>
+            <div>{formatNumber(detail.quantity_kg, 0)} kg</div>
+            <div className="text-[var(--text-tertiary)]">Durum</div>
+            <div>
+              <StatusLabel status={detail.status} />
+            </div>
+            {detail.order && (
+              <>
+                <div className="text-[var(--text-tertiary)]">Sipariş No</div>
+                <div>
+                  <Link href="/panel/siparislerim" className="link">
+                    #{detail.order.order_no}
+                  </Link>
+                </div>
+              </>
+            )}
+            <div className="text-[var(--text-tertiary)]">Tarih</div>
+            <div>{new Date(detail.created_at).toLocaleString("tr-TR")}</div>
+            {detail.message && (
+              <>
+                <div className="text-[var(--text-tertiary)]">Mesaj</div>
+                <div>{detail.message}</div>
+              </>
+            )}
+          </div>
+        </DetailModal>
+      )}
     </div>
   );
 }

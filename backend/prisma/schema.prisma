@@ -166,6 +166,7 @@ model PriceHistory {
 
 model Offer {
   id           String      @id @default(uuid())
+  offer_no     Int         @unique @default(autoincrement()) // insan-okunur teklif no (#123) — takip/referans icin
   product_id   String
   buyer_org_id String
   offer_price  Decimal     @db.Decimal(12, 4) // kg basina teklif fiyati
@@ -216,6 +217,7 @@ enum AlertDirection {
 
 model Order {
   id             String        @id @default(uuid())
+  order_no       Int           @unique @default(autoincrement()) // insan-okunur siparis no (#45) — teklif no ile iliskilendirilir
   product_id     String
   buyer_org_id   String
   seller_org_id  String

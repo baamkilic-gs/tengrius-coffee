@@ -269,7 +269,11 @@ h1, h2, h3, h4, h5, h6 {
 
 .ticker-track {
   width: max-content;
-  animation: ticker-scroll 28s linear infinite;
+  /* animation-duration bilerek buraya yazılmıyor — genişliğe göre JS'ten
+     (RateTicker.tsx) inline style ile ayarlanıyor, sabit piksel/saniye hızı için. */
+  animation-name: ticker-scroll;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
 }
 
 .ticker-track:hover {

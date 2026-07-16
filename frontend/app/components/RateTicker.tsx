@@ -31,10 +31,17 @@ export default function RateTicker() {
   const [trends, setTrends] = useState<Record<string, Trend>>({});
   const prevRef = useRef<Rates | null>(null);
   const measureRef = useRef<HTMLSpanElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
   // Track %-50 kayarak döngüye giriyor; bir kopya viewport'tan darsa döngü
   // öncesi boşluk görünür — bu yüzden viewport genişliğine göre yeterli sayıda
   // (çift adet) kopya render edilir.
   const [repeatCount, setRepeatCount] = useState(6);
+  // Sabit piksel/saniye hızı — kopya sayısı (dolayısıyla toplam genişlik) ekran
+  // genişliğine göre değiştiği için animasyon süresi de buna göre ölçeklenmeli,
+  // aksi halde geniş ekranlarda aynı 28sn'de çok daha fazla piksel kat edilip
+  // baş döndürücü bir hıza çıkıyordu.
+  const [duration, setDuration] = useState(28);
+  const SPEED_PX_PER_SEC = 20;
 
   useEffect(() => {
     let cancelled = false;
@@ -84,6 +91,11 @@ export default function RateTicker() {
     return () => window.removeEventListener("resize", measure);
   }, [rates]);
 
+  useEffect(() => {
+    const halfWidth = (trackRef.current?.scrollWidth ?? 0) / 2;
+    if (halfWidth > 0) setDuration(halfWidth / SPEED_PX_PER_SEC);
+  }, [repeatCount, rates]);
+
   if (!rates) return null;
 
   const items = [
@@ -111,7 +123,7 @@ export default function RateTicker() {
 
   return (
     <div className="bg-[var(--color-coffee-dark)] overflow-hidden border-b border-black/30">
-      <div className="ticker-track flex text-xs py-1.5">
+      <div ref={trackRef} className="ticker-track flex text-xs py-1.5" style={{ animationDuration: `${duration}s` }}>
         {Array.from({ length: repeatCount }, (_, i) => renderCopy(i))}
       </div>
     </div>

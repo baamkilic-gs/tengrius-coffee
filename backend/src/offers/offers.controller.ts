@@ -30,7 +30,10 @@ export class OffersController {
   async sent(@Req() req: any) {
     const offers = await this.prisma.offer.findMany({
       where: { buyer_org_id: req.user.organization_id },
-      include: { product: { select: { id: true, title: true, seller_org_id: true } } },
+      include: {
+        product: { select: { id: true, title: true, seller_org_id: true } },
+        order: { select: { id: true, order_no: true } },
+      },
       orderBy: { created_at: 'desc' },
     });
     return offers.map(offerView);
@@ -44,6 +47,7 @@ export class OffersController {
       include: {
         product: { select: { id: true, title: true } },
         buyer: { select: { id: true, name: true, verified: true } },
+        order: { select: { id: true, order_no: true } },
       },
       orderBy: { created_at: 'desc' },
     });
@@ -134,7 +138,7 @@ export class OffersController {
       throw new BadRequestException('Talep edilen miktar mevcut stoktan fazla — teklifi kabul edemezsiniz');
     }
 
-    let updated = await this.prisma.offer.update({ where: { id }, data: { status } });
+    let updated: any = await this.prisma.offer.update({ where: { id }, data: { status } });
 
     if (status === 'ACCEPTED') {
       const unitPrice = Number(offer.offer_price);
@@ -150,7 +154,11 @@ export class OffersController {
           payment_method: 'BANK_TRANSFER',
         },
       });
-      updated = await this.prisma.offer.update({ where: { id }, data: { order_id: order.id } });
+      updated = await this.prisma.offer.update({
+        where: { id },
+        data: { order_id: order.id },
+        include: { order: { select: { id: true, order_no: true } } },
+      });
 
       await this.notifications.send(product.seller_org_id, 'EMAIL', 'ORDER_CONFIRM', {
         order_id: order.id,

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { api, getOrganization } from "../../../../lib/api";
 import { formatNumber } from "../../../../lib/format";
+import DetailModal from "../../../components/DetailModal";
 
 interface OrgInfo {
   id: string;
@@ -20,6 +21,7 @@ interface OrgInfo {
 
 interface Order {
   id: string;
+  order_no: number;
   quantity_kg: number;
   unit_price: number;
   total_amount: number;
@@ -29,15 +31,32 @@ interface Order {
   order_status: string;
   buyer_org_id: string;
   seller_org_id: string;
+  created_at: string;
   product: { id: string; title: string };
   buyer: OrgInfo;
   seller: OrgInfo;
+  offer: { id: string; offer_no: number } | null;
 }
+
+const PAYMENT_LABEL: Record<string, string> = {
+  PENDING: "Bekliyor",
+  PAID: "Ödendi",
+  FAILED: "Başarısız",
+  REFUNDED: "İade Edildi",
+};
+
+const ORDER_STATUS_LABEL: Record<string, string> = {
+  CREATED: "Oluşturuldu",
+  CONFIRMED: "Onaylandı",
+  SHIPPED: "Sevk Edildi",
+  COMPLETED: "Tamamlandı",
+  CANCELLED: "İptal Edildi",
+};
 
 export default function MyOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState<string | null>(null);
+  const [detail, setDetail] = useState<Order | null>(null);
   const [notifiedIds, setNotifiedIds] = useState<Set<string>>(new Set());
   const org = getOrganization();
 
@@ -57,6 +76,7 @@ export default function MyOrdersPage() {
       body: JSON.stringify({ payment_status: "PAID" }),
     });
     load();
+    setDetail(null);
   };
 
   const notifyBankTransfer = async (id: string) => {
@@ -75,43 +95,83 @@ export default function MyOrdersPage() {
           Henüz siparişiniz yok — bir teklif kabul edildiğinde sipariş burada otomatik olarak görünür.
         </p>
       ) : (
-        <div className="space-y-3">
-          {orders.map((o) => {
-            const isBuyer = org?.id === o.buyer_org_id;
-            const counterpart = isBuyer ? o.seller : o.buyer;
-            const isExpanded = expanded === o.id;
-            return (
-              <div key={o.id} className="card space-y-2 text-sm">
-                <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="text-left bg-[var(--color-coffee)] text-[var(--color-cream)] text-xs uppercase tracking-wide">
+                <th className="py-2.5 px-4 font-medium">Sipariş No</th>
+                <th className="py-2.5 px-4 font-medium">Teklif No</th>
+                <th className="py-2.5 px-4 font-medium">Ürün</th>
+                <th className="py-2.5 px-4 font-medium">Miktar</th>
+                <th className="py-2.5 px-4 font-medium">Toplam</th>
+                <th className="py-2.5 px-4 font-medium">Ödeme</th>
+                <th className="py-2.5 px-4 font-medium">Durum</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map((o) => (
+                <tr key={o.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface-alt)]">
+                  <td className="py-2 px-4">
+                    <button onClick={() => setDetail(o)} className="link font-medium">
+                      #{o.order_no}
+                    </button>
+                  </td>
+                  <td className="py-2 px-4">{o.offer ? `#${o.offer.offer_no}` : "—"}</td>
+                  <td className="py-2 px-4">{o.product.title}</td>
+                  <td className="py-2 px-4">{formatNumber(o.quantity_kg / 1000, 1)} ton</td>
+                  <td className="py-2 px-4 font-semibold text-[var(--color-coffee)]">
+                    {formatNumber(o.total_amount)} {o.currency}
+                  </td>
+                  <td className="py-2 px-4">{PAYMENT_LABEL[o.payment_status] ?? o.payment_status}</td>
+                  <td className="py-2 px-4">{ORDER_STATUS_LABEL[o.order_status] ?? o.order_status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {detail &&
+        (() => {
+          const isBuyer = org?.id === detail.buyer_org_id;
+          const counterpart = isBuyer ? detail.seller : detail.buyer;
+          return (
+            <DetailModal title={`Sipariş #${detail.order_no}`} onClose={() => setDetail(null)}>
+              <div className="space-y-4 text-sm">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                  <div className="text-[var(--text-tertiary)]">Ürün</div>
+                  <div>{detail.product.title}</div>
+                  {detail.offer && (
+                    <>
+                      <div className="text-[var(--text-tertiary)]">Teklif No</div>
+                      <div>#{detail.offer.offer_no}</div>
+                    </>
+                  )}
+                  <div className="text-[var(--text-tertiary)]">Miktar</div>
                   <div>
-                    <p className="font-medium">{o.product.title}</p>
-                    <p className="text-[var(--text-secondary)]">
-                      {formatNumber(o.quantity_kg / 1000, 1)} ton × {formatNumber(o.unit_price, 4)} {o.currency} ={" "}
-                      {formatNumber(o.total_amount)} {o.currency}
-                    </p>
+                    {formatNumber(detail.quantity_kg / 1000, 1)} ton × {formatNumber(detail.unit_price, 4)} {detail.currency}
                   </div>
-                  <div className="text-right">
-                    <p>
-                      Ödeme: <span className="font-medium">{o.payment_status}</span>
-                    </p>
-                    <p>
-                      Durum: <span className="font-medium">{o.order_status}</span>
-                    </p>
+                  <div className="text-[var(--text-tertiary)]">Toplam</div>
+                  <div className="font-semibold text-[var(--color-coffee)]">
+                    {formatNumber(detail.total_amount)} {detail.currency}
                   </div>
+                  <div className="text-[var(--text-tertiary)]">Ödeme Durumu</div>
+                  <div>{PAYMENT_LABEL[detail.payment_status] ?? detail.payment_status}</div>
+                  <div className="text-[var(--text-tertiary)]">Sipariş Durumu</div>
+                  <div>{ORDER_STATUS_LABEL[detail.order_status] ?? detail.order_status}</div>
+                  <div className="text-[var(--text-tertiary)]">Tarih</div>
+                  <div>{new Date(detail.created_at).toLocaleString("tr-TR")}</div>
                 </div>
 
-                <button
-                  onClick={() => setExpanded(isExpanded ? null : o.id)}
-                  className="link text-xs"
-                >
-                  {isExpanded ? "Firma bilgilerini gizle" : `${isBuyer ? "Satıcı" : "Alıcı"} firma bilgilerini göster`}
-                </button>
-
-                {isExpanded && (
-                  <div className="border-t border-[var(--border)] pt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-[var(--text-secondary)]">
+                <div className="border-t border-[var(--border)] pt-3">
+                  <p className="text-xs text-[var(--text-tertiary)] uppercase tracking-wide font-semibold mb-2">
+                    {isBuyer ? "Satıcı" : "Alıcı"} Firma Bilgileri
+                  </p>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-[var(--text-secondary)]">
                     <div>Firma</div>
                     <div>
-                      {counterpart.name} {counterpart.verified && <span className="badge badge-verified">Yetkili Satıcı</span>}
+                      {counterpart.name}{" "}
+                      {counterpart.verified && <span className="badge badge-verified">Yetkili Satıcı</span>}
                     </div>
                     {counterpart.company_legal_name && (
                       <>
@@ -162,30 +222,31 @@ export default function MyOrdersPage() {
                       </>
                     )}
                   </div>
-                )}
+                </div>
 
-                {isBuyer && o.payment_status === "PENDING" && (
-                  <div>
-                    {notifiedIds.has(o.id) ? (
+                {isBuyer && detail.payment_status === "PENDING" && (
+                  <div className="border-t border-[var(--border)] pt-3">
+                    {notifiedIds.has(detail.id) ? (
                       <span className="text-xs text-[var(--success)]">Bildirildi ✓ — satıcı dekontunuzu bekliyor</span>
                     ) : (
-                      <button onClick={() => notifyBankTransfer(o.id)} className="link text-xs">
+                      <button onClick={() => notifyBankTransfer(detail.id)} className="btn btn-primary !py-1.5 !px-3 !text-xs">
                         Havale Yaptım — Bildir
                       </button>
                     )}
                   </div>
                 )}
 
-                {org?.id === o.seller_org_id && o.payment_status === "PENDING" && (
-                  <button onClick={() => confirmPayment(o.id)} className="link text-xs">
-                    Ödemeyi Onayla
-                  </button>
+                {org?.id === detail.seller_org_id && detail.payment_status === "PENDING" && (
+                  <div className="border-t border-[var(--border)] pt-3">
+                    <button onClick={() => confirmPayment(detail.id)} className="btn btn-primary !py-1.5 !px-3 !text-xs">
+                      Ödemeyi Onayla
+                    </button>
+                  </div>
                 )}
               </div>
-            );
-          })}
-        </div>
-      )}
+            </DetailModal>
+          );
+        })()}
     </div>
   );
 }
