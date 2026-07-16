@@ -1,116 +1,141 @@
-interface Pin {
-  x: number;
-  y: number;
-  label: string;
-  labelX: number;
-  labelY: number;
-  anchor?: "start" | "end";
-}
+"use client";
 
-const AMERICAS_PINS: Pin[] = [
-  { x: 210, y: 145, label: "Guatemala", labelX: 100, labelY: 130, anchor: "end" },
-  { x: 222, y: 168, label: "Honduras", labelX: 100, labelY: 168, anchor: "end" },
-  { x: 205, y: 195, label: "Kosta Rika", labelX: 100, labelY: 200, anchor: "end" },
-  { x: 240, y: 235, label: "Kolombiya", labelX: 110, labelY: 275, anchor: "end" },
-  { x: 260, y: 300, label: "Peru", labelX: 120, labelY: 340, anchor: "end" },
-  { x: 320, y: 330, label: "Brezilya", labelX: 340, labelY: 400 },
-];
+import { useEffect, useState } from "react";
+import { geoNaturalEarth1, geoPath } from "d3-geo";
+import { feature } from "topojson-client";
 
-const AFRICA_PINS: Pin[] = [
-  { x: 585, y: 215, label: "Etiyopya", labelX: 640, labelY: 195 },
-  { x: 570, y: 260, label: "Uganda", labelX: 470, labelY: 300, anchor: "end" },
-  { x: 590, y: 275, label: "Kenya", labelX: 650, labelY: 275 },
-  { x: 585, y: 320, label: "Tanzanya", labelX: 650, labelY: 335 },
-];
+type Region = "americas" | "africa" | "asia";
 
-const ASIA_PINS: Pin[] = [
-  { x: 800, y: 175, label: "Hindistan", labelX: 830, labelY: 150 },
-  { x: 900, y: 210, label: "Vietnam", labelX: 950, labelY: 195 },
-  { x: 895, y: 250, label: "Endonezya", labelX: 950, labelY: 260 },
-  { x: 985, y: 265, label: "Papua Yeni Gine", labelX: 1015, labelY: 300 },
-];
+const REGION_COLOR: Record<Region, string> = {
+  americas: "#3E7FA6",
+  africa: "#B5482F",
+  asia: "#C8952E",
+};
 
-function PinGroup({ pins, dotColor }: { pins: Pin[]; dotColor: string }) {
-  return (
-    <>
-      {pins.map((p) => (
-        <g key={p.label}>
-          <line x1={p.x} y1={p.y} x2={p.labelX} y2={p.labelY} stroke="rgba(247,244,238,0.35)" strokeWidth="1" />
-          <circle cx={p.x} cy={p.y} r="4" fill={dotColor} stroke="#F7F4EE" strokeWidth="1.5" />
-          <text
-            x={p.labelX + (p.anchor === "end" ? -6 : 6)}
-            y={p.labelY}
-            textAnchor={p.anchor ?? "start"}
-            fontFamily="var(--font-mono)"
-            fontSize="13"
-            fill="#F7F4EE"
-            dominantBaseline="middle"
-          >
-            {p.label}
-          </text>
-        </g>
-      ))}
-    </>
-  );
-}
+const REGION_LABEL: Record<Region, string> = {
+  americas: "Amerika",
+  africa: "Afrika",
+  asia: "Asya",
+};
+
+/** world-atlas (Natural Earth, kamu malı) veri setindeki İngilizce ülke adlarına göre eşleşir. */
+const COFFEE_COUNTRIES: Record<string, { region: Region; label: string }> = {
+  Brazil: { region: "americas", label: "Brezilya" },
+  Colombia: { region: "americas", label: "Kolombiya" },
+  Guatemala: { region: "americas", label: "Guatemala" },
+  Honduras: { region: "americas", label: "Honduras" },
+  Mexico: { region: "americas", label: "Meksika" },
+  Peru: { region: "americas", label: "Peru" },
+  Nicaragua: { region: "americas", label: "Nikaragua" },
+  "Costa Rica": { region: "americas", label: "Kosta Rika" },
+  "El Salvador": { region: "americas", label: "El Salvador" },
+  Ecuador: { region: "americas", label: "Ekvador" },
+  Ethiopia: { region: "africa", label: "Etiyopya" },
+  Uganda: { region: "africa", label: "Uganda" },
+  Kenya: { region: "africa", label: "Kenya" },
+  Tanzania: { region: "africa", label: "Tanzanya" },
+  "Côte d'Ivoire": { region: "africa", label: "Fildişi Sahili" },
+  Vietnam: { region: "asia", label: "Vietnam" },
+  Indonesia: { region: "asia", label: "Endonezya" },
+  India: { region: "asia", label: "Hindistan" },
+  China: { region: "asia", label: "Çin" },
+  "Papua New Guinea": { region: "asia", label: "Papua Yeni Gine" },
+};
+
+const WIDTH = 1200;
+const HEIGHT = 620;
 
 /**
- * Stilize "Kahve Kuşağı" (Coffee Belt) illüstrasyonu — gerçek coğrafi harita değil,
- * kıtaları basitleştirilmiş bloklar olarak gösteren özgün bir infografik.
- * Bölge renkleri (mavi/kırmızı/altın) kasıtlı olarak kategorik — DESIGN.md'nin
- * "tek vurgu rengi" kuralının, bölge ayrımı gösteren bu özel infografik için
- * bilinçli istisnası.
+ * Gerçek dünya haritası (world-atlas / Natural Earth verisi, kamu malı — bkz.
+ * public/world-110m.json) üzerinde en çok çiğ kahve üreten ülkeler bölgesine
+ * göre (Amerika/Afrika/Asya) renklendirilmiş "Kahve Kuşağı" görselleştirmesi.
+ * Yengeç/Oğlak dönenceleri arasındaki kuşak da referans çizgileriyle gösterilir.
  */
 export default function CoffeeBeltMap() {
+  const [features, setFeatures] = useState<any[] | null>(null);
+
+  useEffect(() => {
+    fetch("/world-110m.json")
+      .then((res) => res.json())
+      .then((topo) => {
+        const geo: any = feature(topo, topo.objects.countries as any);
+        setFeatures(geo.features);
+      })
+      .catch(() => setFeatures([]));
+  }, []);
+
+  if (!features || features.length === 0) {
+    return <div className="w-full aspect-[2/1] rounded-xl" style={{ background: "#241B14" }} />;
+  }
+
+  const geoData = { type: "FeatureCollection", features } as any;
+  const projection = geoNaturalEarth1().fitSize([WIDTH, HEIGHT], geoData);
+  const path = geoPath(projection as any);
+
+  const latLine = (lat: number) => {
+    const points: [number, number][] = [];
+    for (let lon = -180; lon <= 180; lon += 4) {
+      const p = projection([lon, lat]);
+      if (p) points.push(p as [number, number]);
+    }
+    return points.length ? `M${points.map((p) => p.join(",")).join("L")}` : "";
+  };
+
   return (
-    <svg viewBox="0 0 1200 600" className="w-full h-auto" role="img" aria-label="Kahve Kuşağı dünya haritası">
-      <rect width="1200" height="600" rx="16" fill="#241B14" />
+    <div>
+      <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="w-full h-auto rounded-xl" style={{ background: "#241B14" }}>
+        {/* Yengeç (23.5°K) / Ekvator / Oğlak (23.5°G) dönenceleri — kahve kuşağının coğrafi sınırı */}
+        <path d={latLine(23.5)} stroke="#C8763A" strokeWidth="1" strokeDasharray="3 5" opacity="0.35" fill="none" />
+        <path d={latLine(0)} stroke="#C8763A" strokeWidth="1.25" strokeDasharray="3 5" opacity="0.5" fill="none" />
+        <path d={latLine(-23.5)} stroke="#C8763A" strokeWidth="1" strokeDasharray="3 5" opacity="0.35" fill="none" />
 
-      {/* Kuşak vurgusu — ekvator bandı */}
-      <rect x="0" y="210" width="1200" height="150" fill="#C8763A" opacity="0.08" />
-      <line x1="0" y1="210" x2="1200" y2="210" stroke="#C8763A" strokeWidth="1" strokeDasharray="4 6" opacity="0.4" />
-      <line x1="0" y1="360" x2="1200" y2="360" stroke="#C8763A" strokeWidth="1" strokeDasharray="4 6" opacity="0.4" />
+        {features.map((f: any) => {
+          const info = COFFEE_COUNTRIES[f.properties?.name];
+          return (
+            <path
+              key={f.id ?? f.properties?.name}
+              d={path(f) ?? undefined}
+              fill={info ? REGION_COLOR[info.region] : "#4A3B2E"}
+              stroke="#241B14"
+              strokeWidth={0.6}
+              opacity={info ? 0.92 : 0.5}
+            >
+              <title>{info ? `${info.label} — ${REGION_LABEL[info.region]}` : f.properties?.name}</title>
+            </path>
+          );
+        })}
 
-      {/* Amerika bloğu */}
-      <path
-        d="M195,60 C260,55 300,110 290,170 C282,215 320,240 330,300 C345,370 300,430 260,470 C220,500 170,480 165,430 C160,380 130,340 140,280 C150,220 120,170 150,120 C165,90 175,65 195,60 Z"
-        fill="#3E7FA6"
-        opacity="0.85"
-      />
+        <g fontFamily="var(--font-mono)" fontSize="13" fontWeight="500">
+          <circle cx="40" cy={HEIGHT - 26} r="7" fill={REGION_COLOR.americas} />
+          <text x="56" y={HEIGHT - 21} fill="#F7F4EE" letterSpacing="0.04em">
+            AMERİKA
+          </text>
+          <circle cx="180" cy={HEIGHT - 26} r="7" fill={REGION_COLOR.africa} />
+          <text x="196" y={HEIGHT - 21} fill="#F7F4EE" letterSpacing="0.04em">
+            AFRİKA
+          </text>
+          <circle cx="300" cy={HEIGHT - 26} r="7" fill={REGION_COLOR.asia} />
+          <text x="316" y={HEIGHT - 21} fill="#F7F4EE" letterSpacing="0.04em">
+            ASYA
+          </text>
+        </g>
+      </svg>
 
-      {/* Afrika + Ortadoğu bloğu */}
-      <path
-        d="M560,140 C610,130 650,150 660,190 C670,225 655,250 665,290 C675,335 650,380 610,410 C580,432 555,415 545,380 C535,345 510,320 515,280 C520,240 500,200 520,170 C532,152 545,143 560,140 Z"
-        fill="#B5482F"
-        opacity="0.85"
-      />
-
-      {/* Asya + Okyanusya bloğu */}
-      <path
-        d="M780,90 C860,70 950,90 1000,130 C1040,162 1030,200 1050,235 C1070,270 1040,300 1010,290 C990,320 1000,350 970,360 C935,372 900,340 870,320 C840,300 800,300 780,270 C760,240 750,200 760,160 C766,130 762,105 780,90 Z"
-        fill="#C8952E"
-        opacity="0.85"
-      />
-
-      <PinGroup pins={AMERICAS_PINS} dotColor="#3E7FA6" />
-      <PinGroup pins={AFRICA_PINS} dotColor="#B5482F" />
-      <PinGroup pins={ASIA_PINS} dotColor="#C8952E" />
-
-      {/* Bölge lejantı */}
-      <g fontFamily="var(--font-mono)" fontSize="13" fontWeight="500">
-        <circle cx="60" cy="540" r="8" fill="#3E7FA6" />
-        <text x="78" y="545" fill="#F7F4EE" letterSpacing="0.04em">
-          AMERİKA
-        </text>
-        <circle cx="220" cy="540" r="8" fill="#B5482F" />
-        <text x="238" y="545" fill="#F7F4EE" letterSpacing="0.04em">
-          AFRİKA
-        </text>
-        <circle cx="360" cy="540" r="8" fill="#C8952E" />
-        <text x="378" y="545" fill="#F7F4EE" letterSpacing="0.04em">
-          ASYA
-        </text>
-      </g>
-    </svg>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 text-xs">
+        {(["americas", "africa", "asia"] as Region[]).map((region) => (
+          <div key={region}>
+            <p className="font-mono font-semibold uppercase tracking-wide mb-1" style={{ color: REGION_COLOR[region] }}>
+              {REGION_LABEL[region]}
+            </p>
+            <p className="text-[var(--text-secondary)]">
+              {Object.values(COFFEE_COUNTRIES)
+                .filter((c) => c.region === region)
+                .map((c) => c.label)
+                .join(", ")}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

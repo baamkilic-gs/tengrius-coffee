@@ -109,7 +109,7 @@ export default function ProductsListPage() {
   }, [products, columnFilters, sort]);
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10 space-y-6">
+    <div className="max-w-7xl mx-auto px-6 py-10 space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-semibold text-[var(--color-coffee)]">İlanlar</h1>
         <div className="flex border border-[var(--border)] rounded-full overflow-hidden text-sm">

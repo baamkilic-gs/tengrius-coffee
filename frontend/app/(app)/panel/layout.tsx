@@ -34,7 +34,7 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
   const canSell = org?.type === "SELLER";
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row gap-4 sm:gap-8">
+    <div className="max-w-7xl mx-auto px-6 py-8 flex flex-col sm:flex-row gap-4 sm:gap-8">
       <aside className="flex sm:flex-col gap-1 overflow-x-auto sm:overflow-visible -mx-6 px-6 sm:mx-0 sm:px-0 sm:w-48 sm:shrink-0">
         {LINKS.filter((l) => l.href !== "/panel/urunlerim" || canSell).map((link) => (
           <Link

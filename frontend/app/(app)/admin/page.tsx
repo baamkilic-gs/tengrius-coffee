@@ -106,7 +106,7 @@ export default function AdminPage() {
   if (!ready) return null;
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-10 space-y-8">
+    <div className="max-w-6xl mx-auto px-6 py-10 space-y-8">
       <h1 className="text-2xl font-semibold text-[var(--color-coffee)]">Admin Panel</h1>
 
       <section className="space-y-4">

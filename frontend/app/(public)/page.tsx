@@ -82,7 +82,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <div className="max-w-5xl mx-auto px-6 py-12 space-y-14">
+      <div className="max-w-7xl mx-auto px-6 py-12 space-y-14">
         <Reveal>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-[var(--color-coffee)]">İlanlar</h2>
@@ -160,14 +160,6 @@ export default function HomePage() {
         </Reveal>
 
         <Reveal>
-          <h2 className="text-xl font-semibold mb-2 text-[var(--color-coffee)]">Kahve Kuşağı</h2>
-          <p className="text-sm text-[var(--text-tertiary)] mb-5">
-            Çiğ kahve, ekvator çevresindeki "Kahve Kuşağı" boyunca Amerika, Afrika ve Asya'da yetişir
-          </p>
-          <CoffeeBeltMap />
-        </Reveal>
-
-        <Reveal>
           <h2 className="text-xl font-semibold mb-2 text-[var(--color-coffee)]">Yetkili Satıcılar</h2>
           <p className="text-sm text-[var(--text-tertiary)] mb-5">Rozetli, doğrulanmış çiğ kahve satıcılarımız</p>
           {verifiedSellers.length === 0 ? (
@@ -210,6 +202,14 @@ export default function HomePage() {
               ))}
             </div>
           )}
+        </Reveal>
+
+        <Reveal>
+          <h2 className="text-xl font-semibold mb-2 text-[var(--color-coffee)]">Kahve Kuşağı</h2>
+          <p className="text-sm text-[var(--text-tertiary)] mb-5">
+            Çiğ kahve, ekvator çevresindeki "Kahve Kuşağı" boyunca Amerika, Afrika ve Asya'da yetişir
+          </p>
+          <CoffeeBeltMap />
         </Reveal>
       </div>
     </div>

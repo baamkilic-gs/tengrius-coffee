@@ -230,7 +230,7 @@
 ## 5. Layout Principles
 
 **Container:**
-- Max width: 1152px (data/tablo sayfaları — İlanlar, Panel), 960px (metin ağırlıklı — ürün detay)
+- Max width: 1280px (anasayfa, İlanlar, Panel, Admin — geniş ekranlarda boş kalan yan boşlukları en aza indirir), 768px (metin ağırlıklı — ürün detay)
 - Padding: 24px (mobil), 24-32px (masaüstü)
 
 **Spacing Scale:**
