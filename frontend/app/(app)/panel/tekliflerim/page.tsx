@@ -35,8 +35,7 @@ export default function MyOffersPage() {
   const [sent, setSent] = useState<Offer[]>([]);
   const [received, setReceived] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
-  const [creatingOrderFor, setCreatingOrderFor] = useState<string | null>(null);
-  const [orderError, setOrderError] = useState<string | null>(null);
+  const [resolveError, setResolveError] = useState<string | null>(null);
   const org = getOrganization();
   const canSell = org?.type === "SELLER";
 
@@ -56,26 +55,14 @@ export default function MyOffersPage() {
   useEffect(load, []);
 
   const resolve = async (id: string, action: "accept" | "reject") => {
-    await api(`/offers/${id}/${action}`, { method: "PATCH" });
-    load();
-  };
-
-  const createOrderFromOffer = async (offerId: string) => {
-    setOrderError(null);
-    setCreatingOrderFor(offerId);
-    const res = await api("/orders", {
-      method: "POST",
-      body: JSON.stringify({ offer_id: offerId, payment_method: "BANK_TRANSFER" }),
-    });
+    setResolveError(null);
+    const res = await api(`/offers/${id}/${action}`, { method: "PATCH" });
     if (res.ok) {
-      const order = await res.json();
-      await api(`/payments/bank-transfer/${order.id}/notify`, { method: "POST" });
       load();
     } else {
       const err = await res.json().catch(() => ({}));
-      setOrderError(err.message ?? "Sipariş oluşturulamadı");
+      setResolveError(err.message ?? "İşlem gerçekleştirilemedi");
     }
-    setCreatingOrderFor(null);
   };
 
   if (loading) return <p className="text-[var(--text-secondary)]">Yükleniyor…</p>;
@@ -86,6 +73,7 @@ export default function MyOffersPage() {
   return (
     <div className="space-y-8">
       <h1 className="text-2xl font-semibold text-[var(--color-coffee)]">Tekliflerim</h1>
+      {resolveError && <p className="text-sm text-[var(--error)]">{resolveError}</p>}
 
       {received.length > 0 && (
         <section className="space-y-2">
@@ -112,6 +100,11 @@ export default function MyOffersPage() {
                   </button>
                 </div>
               )}
+              {o.status === "ACCEPTED" && o.order_id && (
+                <Link href="/panel/siparislerim" className="link text-xs">
+                  Siparişi görüntüle →
+                </Link>
+              )}
             </div>
           ))}
         </section>
@@ -119,7 +112,6 @@ export default function MyOffersPage() {
 
       <section className="space-y-2">
         <h2 className="font-semibold">Verdiğim Teklifler</h2>
-        {orderError && <p className="text-sm text-[var(--error)]">{orderError}</p>}
         {sent.length === 0 ? (
           <p className="text-[var(--text-secondary)] text-sm">
             Henüz teklif vermediniz — teklif vermek için bir{" "}
@@ -137,18 +129,9 @@ export default function MyOffersPage() {
                   {formatNumber(o.offer_price, 4)} USD/kg × {formatNumber(o.quantity_kg, 0)} kg — {o.status}
                 </p>
               </div>
-              {o.status === "ACCEPTED" && !o.order_id && (
-                <button
-                  onClick={() => createOrderFromOffer(o.id)}
-                  disabled={creatingOrderFor === o.id}
-                  className="btn btn-primary !py-1 !px-3 !text-xs"
-                >
-                  {creatingOrderFor === o.id ? "Oluşturuluyor…" : "Bu Tekliften Sipariş Oluştur"}
-                </button>
-              )}
-              {o.order_id && (
+              {o.status === "ACCEPTED" && o.order_id && (
                 <Link href="/panel/siparislerim" className="link text-xs">
-                  Sipariş oluşturuldu ✓
+                  Siparişi görüntüle →
                 </Link>
               )}
             </div>

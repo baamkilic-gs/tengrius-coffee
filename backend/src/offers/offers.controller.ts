@@ -111,6 +111,13 @@ export class OffersController {
     return this.resolve(req, id, 'REJECTED');
   }
 
+  /**
+   * Teklif kabul edilince süreç orada bitmez — sipariş otomatik oluşturulur
+   * (satıcı için tek bir ödeme yöntemi (BANK_TRANSFER) olduğundan aradaki
+   * manuel "sipariş oluştur" adımı gerçek bir karar taşımıyordu, sadece
+   * sürtünme yaratıyordu). Alıcı havaleyi yaptığında Siparişlerim'den
+   * bildirir, satıcı da dekontu görünce ödemeyi onaylar.
+   */
   private async resolve(req: any, id: string, status: 'ACCEPTED' | 'REJECTED') {
     const offer = await this.prisma.offer.findUnique({ where: { id }, include: { product: true } });
     if (!offer) throw new NotFoundException('Teklif bulunamadı');
@@ -121,7 +128,39 @@ export class OffersController {
       throw new BadRequestException('Bu teklif zaten sonuçlandırılmış');
     }
 
-    const updated = await this.prisma.offer.update({ where: { id }, data: { status } });
+    const product = offer.product;
+    const quantityKg = Number(offer.quantity_kg);
+    if (status === 'ACCEPTED' && quantityKg > product.quantity_kg) {
+      throw new BadRequestException('Talep edilen miktar mevcut stoktan fazla — teklifi kabul edemezsiniz');
+    }
+
+    let updated = await this.prisma.offer.update({ where: { id }, data: { status } });
+
+    if (status === 'ACCEPTED') {
+      const unitPrice = Number(offer.offer_price);
+      const order = await this.prisma.order.create({
+        data: {
+          product_id: product.id,
+          buyer_org_id: offer.buyer_org_id,
+          seller_org_id: product.seller_org_id,
+          quantity_kg: quantityKg,
+          unit_price: unitPrice,
+          total_amount: unitPrice * quantityKg,
+          currency: product.currency,
+          payment_method: 'BANK_TRANSFER',
+        },
+      });
+      updated = await this.prisma.offer.update({ where: { id }, data: { order_id: order.id } });
+
+      await this.notifications.send(product.seller_org_id, 'EMAIL', 'ORDER_CONFIRM', {
+        order_id: order.id,
+        product_id: product.id,
+      });
+      await this.notifications.send(offer.buyer_org_id, 'EMAIL', 'ORDER_CONFIRM', {
+        order_id: order.id,
+        product_id: product.id,
+      });
+    }
 
     await this.notifications.send(offer.buyer_org_id, 'EMAIL', 'OFFER_UPDATE', {
       offer_id: offer.id,

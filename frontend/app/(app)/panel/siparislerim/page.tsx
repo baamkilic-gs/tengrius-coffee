@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { api, getOrganization } from "../../../../lib/api";
 import { formatNumber } from "../../../../lib/format";
 
@@ -39,6 +38,7 @@ export default function MyOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [notifiedIds, setNotifiedIds] = useState<Set<string>>(new Set());
   const org = getOrganization();
 
   const load = () => {
@@ -59,6 +59,11 @@ export default function MyOrdersPage() {
     load();
   };
 
+  const notifyBankTransfer = async (id: string) => {
+    await api(`/payments/bank-transfer/${id}/notify`, { method: "POST" });
+    setNotifiedIds((prev) => new Set(prev).add(id));
+  };
+
   return (
     <div className="space-y-8">
       <h1 className="text-2xl font-semibold text-[var(--color-coffee)]">Siparişlerim</h1>
@@ -67,11 +72,7 @@ export default function MyOrdersPage() {
         <p className="text-[var(--text-secondary)]">Yükleniyor…</p>
       ) : orders.length === 0 ? (
         <p className="text-[var(--text-secondary)] text-sm">
-          Henüz siparişiniz yok — bir teklif kabul edildikten sonra{" "}
-          <Link href="/panel/tekliflerim" className="link">
-            Tekliflerim
-          </Link>{" "}
-          sayfasından sipariş oluşturabilirsiniz.
+          Henüz siparişiniz yok — bir teklif kabul edildiğinde sipariş burada otomatik olarak görünür.
         </p>
       ) : (
         <div className="space-y-3">
@@ -159,6 +160,18 @@ export default function MyOrdersPage() {
                           </>
                         )}
                       </>
+                    )}
+                  </div>
+                )}
+
+                {isBuyer && o.payment_status === "PENDING" && (
+                  <div>
+                    {notifiedIds.has(o.id) ? (
+                      <span className="text-xs text-[var(--success)]">Bildirildi ✓ — satıcı dekontunuzu bekliyor</span>
+                    ) : (
+                      <button onClick={() => notifyBankTransfer(o.id)} className="link text-xs">
+                        Havale Yaptım — Bildir
+                      </button>
                     )}
                   </div>
                 )}

@@ -1,23 +1,19 @@
 import {
   Controller,
   Get,
-  Post,
   Patch,
   Param,
   Query,
   Body,
   Req,
-  UseGuards,
   BadRequestException,
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import { PremiumGuard } from '../common/premium.guard';
 import { NotificationsService } from '../notifications/notifications.service';
 import { decimalFields } from '../common/serialize';
 
-const PAYMENT_METHODS = ['CREDIT_CARD', 'BANK_TRANSFER'];
 const ORDER_STATUSES = ['CREATED', 'CONFIRMED', 'SHIPPED', 'COMPLETED', 'CANCELLED'];
 
 // Sipariş ekranında karşı tarafın firma bilgileri — banka IBAN'ları havale ödemesi için gereklidir
@@ -91,72 +87,6 @@ export class OrdersController {
       total_quantity_tons: Math.round((totalQuantityKg / 1000) * 1000) / 1000,
       total_revenue: Math.round(totalRevenue * 100) / 100,
     };
-  }
-
-  /**
-   * POST /orders — { offer_id, payment_method } — kabul edilmiş bir teklifin fiyat/miktarını
-   * aynen kullanarak sipariş oluşturur (her sipariş bir teklif üzerinden geçer, doğrudan/
-   * tekliften bağımsız satın alma kaldırıldı). Yalnızca Premium alıcılara açık.
-   */
-  @UseGuards(PremiumGuard)
-  @Post()
-  async create(@Req() req: any, @Body() body: any) {
-    const paymentMethod = String(body.payment_method ?? '').toUpperCase();
-    if (!PAYMENT_METHODS.includes(paymentMethod)) {
-      throw new BadRequestException('payment_method CREDIT_CARD veya BANK_TRANSFER olmalıdır');
-    }
-    if (paymentMethod === 'CREDIT_CARD') {
-      throw new BadRequestException(
-        'Kredi kartı ödemesi henüz aktif değil — bir ödeme sağlayıcısı entegrasyonu gerekir. Şimdilik BANK_TRANSFER kullanın.',
-      );
-    }
-    if (!body.offer_id) {
-      throw new BadRequestException('Sipariş yalnızca kabul edilmiş bir teklif üzerinden oluşturulabilir');
-    }
-
-    const offer = await this.prisma.offer.findUnique({ where: { id: body.offer_id }, include: { product: true } });
-    if (!offer || offer.buyer_org_id !== req.user.organization_id) {
-      throw new NotFoundException('Teklif bulunamadı');
-    }
-    if (offer.status !== 'ACCEPTED') {
-      throw new BadRequestException('Yalnızca kabul edilmiş bir tekliften sipariş oluşturulabilir');
-    }
-    if (offer.order_id) {
-      throw new BadRequestException('Bu teklif zaten bir siparişe dönüştürülmüş');
-    }
-
-    const quantityKg = Number(offer.quantity_kg);
-    const product = offer.product;
-    if (!product || product.status !== 'ACTIVE') {
-      throw new NotFoundException('Ürün bulunamadı veya artık aktif değil');
-    }
-    if (quantityKg > product.quantity_kg) {
-      throw new BadRequestException('Talep edilen miktar mevcut stoktan fazla');
-    }
-
-    const unitPrice = Number(offer.offer_price);
-
-    const order = await this.prisma.order.create({
-      data: {
-        product_id: product.id,
-        buyer_org_id: req.user.organization_id,
-        seller_org_id: product.seller_org_id,
-        quantity_kg: quantityKg,
-        unit_price: unitPrice,
-        total_amount: unitPrice * quantityKg,
-        currency: product.currency,
-        payment_method: paymentMethod as any,
-      },
-    });
-
-    await this.prisma.offer.update({ where: { id: offer.id }, data: { order_id: order.id } });
-
-    await this.notifications.send(product.seller_org_id, 'EMAIL', 'ORDER_CONFIRM', {
-      order_id: order.id,
-      product_id: product.id,
-    });
-
-    return orderView(order);
   }
 
   /**
