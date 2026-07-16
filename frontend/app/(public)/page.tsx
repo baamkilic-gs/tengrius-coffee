@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "../../lib/api";
 import { formatNumber } from "../../lib/format";
-import { flagFor } from "../../lib/countryFlags";
+import FlagIcon from "../components/FlagIcon";
 
 const SPECIES = [
   { common: "Arabica", accent: "#5a3420", rgb: "90,52,32", desc: "Aromatik ve kompleks — dünya kahve üretiminin çoğunluğu.", tilt: -3 },
@@ -114,7 +114,7 @@ export default function HomePage() {
                         </Link>
                       </td>
                       <td className="py-2.5 px-4">
-                        {flagFor(p.country)} {p.country}
+                        <FlagIcon country={p.country} /> {p.country}
                       </td>
                       <td className="py-2.5 px-4">{p.bean_type}</td>
                       <td className="py-2.5 px-4 font-semibold text-[var(--color-coffee)]">

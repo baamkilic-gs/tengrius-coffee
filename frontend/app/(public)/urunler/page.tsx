@@ -5,7 +5,7 @@ import Link from "next/link";
 import { api } from "../../../lib/api";
 import { formatNumber } from "../../../lib/format";
 import { COUNTRIES } from "../../../lib/countries";
-import { flagFor } from "../../../lib/countryFlags";
+import FlagIcon from "../../components/FlagIcon";
 import ColumnFilterHeader from "../../components/ColumnFilterHeader";
 
 const BEAN_TYPES = ["Arabica", "Robusta", "Liberica", "Excelsa", "Blend"];
@@ -143,7 +143,7 @@ export default function ProductsListPage() {
           <option value="">Tüm ülkeler</option>
           {COUNTRIES.map((c) => (
             <option key={c} value={c}>
-              {flagFor(c)} {c}
+              {c}
             </option>
           ))}
         </select>
@@ -170,7 +170,7 @@ export default function ProductsListPage() {
             <Link key={p.id} href={`/urunler/${p.id}`} className="card block">
               <p className="font-medium">{p.title}</p>
               <p className="text-sm text-[var(--text-secondary)]">
-                {flagFor(p.country)} {p.country} · {p.bean_type}
+                <FlagIcon country={p.country} /> {p.country} · {p.bean_type}
               </p>
               <p className="mt-3 text-[var(--color-coffee)] font-semibold">
                 {formatNumber(p.price_per_kg, 4)} {p.currency} / kg
@@ -232,7 +232,7 @@ export default function ProductsListPage() {
                         </Link>
                       </td>
                       <td className="py-2.5 px-4">
-                        {flagFor(p.country)} {p.country}
+                        <FlagIcon country={p.country} /> {p.country}
                       </td>
                       <td className="py-2.5 px-4">{p.bean_type}</td>
                       <td className="py-2.5 px-4 font-semibold text-[var(--color-coffee)]">

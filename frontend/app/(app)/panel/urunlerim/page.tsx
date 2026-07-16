@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { api } from "../../../../lib/api";
 import { formatNumber } from "../../../../lib/format";
 import { COUNTRIES } from "../../../../lib/countries";
-import { flagFor } from "../../../../lib/countryFlags";
+import FlagIcon from "../../../components/FlagIcon";
 
 const CURRENT_YEAR = new Date().getFullYear();
 const HARVEST_YEARS = Array.from({ length: 5 }, (_, i) => CURRENT_YEAR - i);
@@ -132,7 +132,7 @@ export default function MyProductsPage() {
             <option value="">Ülke seçin</option>
             {COUNTRIES.map((c) => (
               <option key={c} value={c}>
-                {flagFor(c)} {c}
+                {c}
               </option>
             ))}
           </select>
@@ -308,7 +308,7 @@ export default function MyProductsPage() {
               {products.map((p) => (
                 <tr key={p.id} className="border-b border-[var(--border)]">
                   <td className="py-2">
-                    {flagFor(p.country)} {p.country}
+                    <FlagIcon country={p.country} /> {p.country}
                   </td>
                   <td className="py-2">
                     {p.title}

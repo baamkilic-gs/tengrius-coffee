@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import "flag-icons/css/flag-icons.min.css";
 import "./globals.css";
 import Nav from "./components/Nav";
 import RateTicker from "./components/RateTicker";

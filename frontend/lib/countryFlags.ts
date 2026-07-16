@@ -41,16 +41,14 @@ const COUNTRY_ISO2: Record<string, string> = {
   Yunanistan: "GR", Zambiya: "ZM", Zimbabve: "ZW",
 };
 
-/** ISO2 kodunu bölgesel gösterge sembolleriyle bayrak emojisine çevirir (ör. "TR" → 🇹🇷). */
-function toFlagEmoji(code: string): string {
-  return code
-    .toUpperCase()
-    .replace(/./g, (c) => String.fromCodePoint(0x1f1e6 + c.charCodeAt(0) - 65));
-}
-
-/** Türkçe ülke adından bayrak emojisi döndürür; eşleşme yoksa boş string. */
-export const flagFor = (countryName: string | null | undefined): string => {
-  if (!countryName) return "";
+/**
+ * Türkçe ülke adından küçük harf ISO2 kodu döndürür (flag-icons paketinin
+ * `fi-{code}` sınıfı için) — bayrak emojisi DEĞİL, gerçek SVG asset kullanılır
+ * çünkü emoji bayrak desteği işletim sistemine göre değişiyordu (Windows
+ * masaüstü Chrome'da hiç görünmeyebiliyor, mobilde görünüyordu).
+ */
+export const countryCode = (countryName: string | null | undefined): string | null => {
+  if (!countryName) return null;
   const code = COUNTRY_ISO2[countryName];
-  return code ? toFlagEmoji(code) : "";
+  return code ? code.toLowerCase() : null;
 };

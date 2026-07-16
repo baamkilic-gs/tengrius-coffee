@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { api, getUser, getOrganization } from "../../../../lib/api";
 import { formatNumber } from "../../../../lib/format";
-import { flagFor } from "../../../../lib/countryFlags";
+import FlagIcon from "../../../components/FlagIcon";
 
 interface ProductDetail {
   id: string;
@@ -88,7 +88,7 @@ export default function ProductDetailPage() {
           )}
         </h1>
         <p className="text-[var(--text-secondary)]">
-          {flagFor(product.country)} {product.country}
+          <FlagIcon country={product.country} /> {product.country}
           {product.region ? ` · ${product.region}` : ""} · {product.bean_type}
         </p>
       </div>
