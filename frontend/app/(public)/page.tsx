@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { api, getUser, getOrganization } from "../../lib/api";
 import { useFavorites } from "../../lib/useFavorites";
 import { formatNumber } from "../../lib/format";
@@ -67,7 +68,8 @@ export default function HomePage() {
 
   // 0 = sayfa en üstte (büyük hero), 1 = 240px+ scroll edilmiş (daralmış hero)
   const shrink = Math.min(scrollY / 240, 1);
-  const { isFavorite, toggleFavorite, loggedIn } = useFavorites();
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const router = useRouter();
 
   useEffect(() => {
     api("/products")
@@ -89,7 +91,29 @@ export default function HomePage() {
   return (
     <div>
       {/* Hero — açılışta hafif büyük, aşağı scroll edildikçe daralır */}
-      <section className="hero-gradient text-[var(--color-cream)] overflow-hidden flex items-center">
+      <section className="hero-gradient text-[var(--color-cream)] overflow-hidden flex items-center relative">
+        <button
+          onClick={() => router.back()}
+          aria-label="Geri"
+          title="Geri"
+          className="absolute top-2 left-2 p-1.5 rounded-full text-[var(--color-cream)]/70 hover:text-[var(--color-gold-light)] hover:bg-white/10 transition-colors"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+        <button
+          onClick={() => window.location.reload()}
+          aria-label="Yenile"
+          title="Yenile"
+          className="absolute top-2 right-2 p-1.5 rounded-full text-[var(--color-cream)]/70 hover:text-[var(--color-gold-light)] hover:bg-white/10 transition-colors"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M23 4v6h-6" />
+            <path d="M1 20v-6h6" />
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+          </svg>
+        </button>
         <div
           className="max-w-3xl mx-auto px-6 text-center space-y-2 transition-[padding] duration-200 ease-out"
           style={{ paddingTop: 56 - shrink * 40, paddingBottom: 56 - shrink * 40 }}
@@ -128,7 +152,7 @@ export default function HomePage() {
               <table className="w-full text-sm border-collapse data-table">
                 <thead>
                   <tr>
-                    {loggedIn && <th className="py-3 px-3 w-8" />}
+                    <th className="py-3 px-3 w-8" />
                     <th className="py-3 px-4">Ürün</th>
                     <th className="py-3 px-4">Ülke</th>
                     <th className="py-3 px-4">Tür</th>
@@ -142,11 +166,9 @@ export default function HomePage() {
                 <tbody>
                   {listings.map((p) => (
                     <tr key={p.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface-alt)]">
-                      {loggedIn && (
-                        <td className="py-2.5 px-3">
-                          <FavoriteButton productId={p.id} isFavorite={isFavorite(p.id)} onToggle={toggleFavorite} />
-                        </td>
-                      )}
+                      <td className="py-2.5 px-3">
+                        <FavoriteButton productId={p.id} isFavorite={isFavorite(p.id)} onToggle={toggleFavorite} />
+                      </td>
                       <td className="py-2.5 px-4">
                         <Link href={`/urunler/${p.id}`} className="link font-medium">
                           {p.title}

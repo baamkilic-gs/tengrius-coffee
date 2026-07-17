@@ -1,13 +1,19 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 /**
  * D365 F&O tarzı eylem çubuğu — geri (sol) / yenile (sağ), ortada ileride
  * sayfaya özel aksiyonlar için yer var. Tüm sayfalarda görünür (root layout).
+ * Anasayfada gösterilmez: hero bölümünün üstünde ayrı renkli bir çubuk
+ * çirkin bir kesim izlenimi yaratıyordu — anasayfa yerine kendi geri/yenile
+ * simgelerini hero'nun içine gömüyor (bkz. (public)/page.tsx).
  */
 export default function ActionBar({ children }: { children?: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
+
+  if (pathname === "/") return null;
 
   return (
     <div className="bg-[var(--surface-alt)] border-b border-[var(--border)] px-4 py-1.5 flex items-center justify-between text-[var(--text-secondary)]">

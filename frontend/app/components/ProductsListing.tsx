@@ -138,8 +138,8 @@ export function ProductsListingView({
   setSort,
   emptyText = "Ürün bulunamadı",
   emptyFilterText = "Filtreyle eşleşen ilan yok",
-  isFavorite,
-  onToggleFavorite,
+  isFavorite = () => false,
+  onToggleFavorite = () => {},
 }: {
   rows: Product[];
   loading?: boolean;
@@ -157,8 +157,6 @@ export function ProductsListingView({
   isFavorite?: (id: string) => boolean;
   onToggleFavorite?: (id: string) => void;
 }) {
-  const showFavorites = Boolean(onToggleFavorite);
-
   if (loading) return <p className="text-[var(--text-secondary)]">Yükleniyor…</p>;
   if (rows.length === 0 && Object.keys(columnFilters).every((k) => !columnFilters[k])) {
     return <p className="text-[var(--text-secondary)]">{emptyText}</p>;
@@ -189,11 +187,9 @@ export function ProductsListingView({
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {rows.map((p) => (
             <div key={p.id} className="card relative">
-              {showFavorites && (
-                <div className="absolute top-3 right-3">
-                  <FavoriteButton productId={p.id} isFavorite={Boolean(isFavorite?.(p.id))} onToggle={onToggleFavorite!} />
-                </div>
-              )}
+              <div className="absolute top-3 right-3">
+                <FavoriteButton productId={p.id} isFavorite={isFavorite(p.id)} onToggle={onToggleFavorite} />
+              </div>
               <Link href={`/urunler/${p.id}`} className="block">
                 <p className="font-medium pr-6">{p.title}</p>
                 <p className="text-sm text-[var(--text-secondary)]">
@@ -217,7 +213,7 @@ export function ProductsListingView({
             <table className="w-full text-sm border-collapse data-table">
               <thead>
                 <tr>
-                  {showFavorites && <th className="py-3 px-3 w-8" />}
+                  <th className="py-3 px-3 w-8" />
                   {COLUMNS.map((col) => (
                     <th key={col.key} className="py-3 px-4 relative">
                       <ColumnFilterHeader
@@ -248,18 +244,16 @@ export function ProductsListingView({
               <tbody>
                 {rows.length === 0 ? (
                   <tr>
-                    <td colSpan={COLUMNS.length + (showFavorites ? 1 : 0)} className="py-6 px-4 text-center text-[var(--text-secondary)]">
+                    <td colSpan={COLUMNS.length + 1} className="py-6 px-4 text-center text-[var(--text-secondary)]">
                       {emptyFilterText}
                     </td>
                   </tr>
                 ) : (
                   rows.map((p) => (
                     <tr key={p.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface-alt)]">
-                      {showFavorites && (
-                        <td className="py-2.5 px-3">
-                          <FavoriteButton productId={p.id} isFavorite={Boolean(isFavorite?.(p.id))} onToggle={onToggleFavorite!} />
-                        </td>
-                      )}
+                      <td className="py-2.5 px-3">
+                        <FavoriteButton productId={p.id} isFavorite={isFavorite(p.id)} onToggle={onToggleFavorite} />
+                      </td>
                       <td className="py-2.5 px-4">
                         <Link href={`/urunler/${p.id}`} className="link font-medium">
                           {p.title}

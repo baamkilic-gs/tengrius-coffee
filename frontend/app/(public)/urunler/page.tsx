@@ -14,7 +14,7 @@ export default function ProductsListPage() {
   const [beanType, setBeanType] = useState("");
   const [loading, setLoading] = useState(true);
   const table = useProductRows(products);
-  const { isFavorite, toggleFavorite, loggedIn } = useFavorites();
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   const load = () => {
     setLoading(true);
@@ -62,12 +62,7 @@ export default function ProductsListPage() {
         </button>
       </form>
 
-      <ProductsListingView
-        {...table}
-        loading={loading}
-        isFavorite={isFavorite}
-        onToggleFavorite={loggedIn ? toggleFavorite : undefined}
-      />
+      <ProductsListingView {...table} loading={loading} isFavorite={isFavorite} onToggleFavorite={toggleFavorite} />
     </div>
   );
 }
