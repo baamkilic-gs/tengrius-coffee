@@ -68,7 +68,20 @@ export async function api(path: string, options: RequestInit = {}): Promise<Resp
   const token = getToken();
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  const res = await fetch(`${API_URL}${path}`, { ...options, headers });
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}${path}`, { ...options, headers });
+  } catch {
+    // fetch, ağ hatası/CORS engeli gibi durumlarda reject eder — bu, çağıran
+    // sayfalarda "await api(...)" sonrası hiç dönmeyen (ör. "Giriş yapılıyor…"
+    // durumunda sonsuza kadar takılı kalan) bir Promise'e yol açardı. Burada
+    // normal bir "başarısız" Response'a çeviriyoruz ki her çağıran, zaten
+    // yazdığı res.ok/err.message mantığıyla düzgün bir hata gösterebilsin.
+    return new Response(
+      JSON.stringify({ message: "Sunucuya bağlanılamadı. İnternet bağlantınızı kontrol edip tekrar deneyin." }),
+      { status: 503, headers: { "Content-Type": "application/json" } },
+    );
+  }
 
   // Oturum düşmüşse girişe yönlendir (login isteğinin kendisi hariç)
   if (res.status === 401 && typeof window !== "undefined" && !path.startsWith("/auth/login")) {
