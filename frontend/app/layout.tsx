@@ -4,6 +4,7 @@ import "./globals.css";
 import Nav from "./components/Nav";
 import RateTicker from "./components/RateTicker";
 import ActionBar from "./components/ActionBar";
+import SideRail from "./components/SideRail";
 import { ToastProvider } from "./components/Toast";
 
 export const metadata: Metadata = {
@@ -23,7 +24,10 @@ export default function RootLayout({
           <Nav />
           <RateTicker />
           <ActionBar />
-          <main className="flex-1">{children}</main>
+          <div className="flex flex-1 min-h-0">
+            <SideRail />
+            <main className="flex-1 min-w-0">{children}</main>
+          </div>
         </ToastProvider>
       </body>
     </html>
