@@ -164,22 +164,33 @@ export function ProductsListingView({
 
   return (
     <div className="space-y-4">
-      <div className="flex border border-[var(--border)] rounded-full overflow-hidden text-sm w-fit">
-        <button
-          onClick={() => setView("list")}
-          className={`px-4 py-1.5 transition-colors ${
-            view === "list" ? "bg-[var(--color-coffee)] text-[var(--color-cream)]" : "text-[var(--text-secondary)]"
-          }`}
-        >
-          Liste Görünümü
-        </button>
+      <div className="flex border border-[var(--border)] rounded-full overflow-hidden w-fit">
         <button
           onClick={() => setView("grid")}
-          className={`px-4 py-1.5 transition-colors ${
-            view === "grid" ? "bg-[var(--color-coffee)] text-[var(--color-cream)]" : "text-[var(--text-secondary)]"
+          title="Kutu Görünümü"
+          aria-label="Kutu Görünümü"
+          className={`px-3 py-2 transition-colors ${
+            view === "grid" ? "bg-[var(--color-coffee)] text-[var(--color-cream)]" : "text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]"
           }`}
         >
-          Kutu Görünümü
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3.5" y="3.5" width="7" height="7" rx="1" />
+            <rect x="13.5" y="3.5" width="7" height="7" rx="1" />
+            <rect x="3.5" y="13.5" width="7" height="7" rx="1" />
+            <rect x="13.5" y="13.5" width="7" height="7" rx="1" />
+          </svg>
+        </button>
+        <button
+          onClick={() => setView("list")}
+          title="Liste Görünümü"
+          aria-label="Liste Görünümü"
+          className={`px-3 py-2 transition-colors border-l border-[var(--border)] ${
+            view === "list" ? "bg-[var(--color-coffee)] text-[var(--color-cream)]" : "text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]"
+          }`}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
         </button>
       </div>
 
