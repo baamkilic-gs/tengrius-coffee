@@ -93,7 +93,7 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
       <nav className="w-14 shrink-0 bg-[var(--surface-alt)] border-r border-[var(--border)] flex flex-col items-center gap-1 py-4 sticky top-0 self-start min-h-[70vh]">
         {railItem("/panel", ICONS.home, "Genel Bakış")}
         <div className="w-6 border-t border-[var(--border)] my-1" />
-        {railItem("/urunler", ICONS.listings, "İlanlar")}
+        {railItem("/panel/ilanlar", ICONS.listings, "İlanlar")}
         {canSell && railItem("/panel/urunlerim", ICONS.myProducts, "Ürünlerim")}
         {railItem("/panel/tekliflerim", ICONS.offers, "Tekliflerim")}
         {railItem("/panel/siparislerim", ICONS.orders, "Siparişlerim")}
