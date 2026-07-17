@@ -159,8 +159,8 @@ export default function MyOffersPage() {
         {sent.length === 0 ? (
           <p className="text-[var(--text-secondary)] text-sm">
             Henüz teklif vermediniz — teklif vermek için bir{" "}
-            <Link href="/urunler" className="link">
-              ürün sayfasına
+            <Link href="/panel/ilanlar" className="link">
+              ilan sayfasına
             </Link>{" "}
             gidip "Teklif Ver" formunu kullanın (Premium üyelik gerekir).
           </p>
