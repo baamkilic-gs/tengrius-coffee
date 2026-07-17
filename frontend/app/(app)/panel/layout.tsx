@@ -101,7 +101,7 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
       </nav>
 
       <div className="flex-1 min-w-0 flex">
-        <div className="flex-1 min-w-0 px-6 py-8 max-w-4xl">{children}</div>
+        <div className="flex-1 min-w-0 px-4 sm:px-6 py-8">{children}</div>
 
         <aside className="hidden xl:block w-64 shrink-0 border-l border-[var(--border)] px-4 py-8 space-y-4">
           {org && (

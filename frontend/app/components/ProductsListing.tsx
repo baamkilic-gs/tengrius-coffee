@@ -24,15 +24,15 @@ export interface Product {
 
 export type ViewMode = "grid" | "list";
 
-const COLUMNS: { key: string; label: string }[] = [
+const COLUMNS: { key: string; label: string; mobileHidden?: boolean }[] = [
   { key: "title", label: "Ürün" },
   { key: "country", label: "Ülke" },
   { key: "bean_type", label: "Tür" },
   { key: "price_per_kg", label: "Kg Fiyatı" },
   { key: "quantity_tons", label: "Stok (ton)" },
   { key: "seller_name", label: "Satıcı" },
-  { key: "contact_name", label: "İlgili Kişi" },
-  { key: "contact_phone", label: "Telefon" },
+  { key: "contact_name", label: "İlgili Kişi", mobileHidden: true },
+  { key: "contact_phone", label: "Telefon", mobileHidden: true },
 ];
 
 const columnValue = (p: Product, key: string): string => {
@@ -226,7 +226,7 @@ export function ProductsListingView({
                 <tr>
                   <th className="py-3 px-3 w-8" />
                   {COLUMNS.map((col) => (
-                    <th key={col.key} className="py-3 px-4 relative">
+                    <th key={col.key} className={`py-3 px-4 relative ${col.mobileHidden ? "hidden md:table-cell" : ""}`}>
                       <ColumnFilterHeader
                         label={col.label}
                         isOpen={openColumn === col.key}
@@ -281,8 +281,8 @@ export function ProductsListingView({
                       <td className="py-2.5 px-4 text-[var(--text-secondary)]">
                         {p.seller.name} {p.seller.verified && <span className="badge badge-verified">Yetkili Satıcı</span>}
                       </td>
-                      <td className="py-2.5 px-4">{p.seller.contact_name ?? "—"}</td>
-                      <td className="py-2.5 px-4">{p.seller.contact_phone ?? "—"}</td>
+                      <td className="py-2.5 px-4 hidden md:table-cell">{p.seller.contact_name ?? "—"}</td>
+                      <td className="py-2.5 px-4 hidden md:table-cell">{p.seller.contact_phone ?? "—"}</td>
                     </tr>
                   ))
                 )}
