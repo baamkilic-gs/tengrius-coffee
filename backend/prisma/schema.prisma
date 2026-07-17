@@ -57,13 +57,14 @@ model Organization {
   security_policy_accepted_at DateTime?
   sales_agreement_accepted_at DateTime?
 
-  members      OrganizationMember[]
-  products     Product[]
-  offers       Offer[]
-  buyerOrders  Order[]              @relation("BuyerOrders")
-  sellerOrders Order[]              @relation("SellerOrders")
-  priceAlerts  PriceAlert[]
-  favorites    ProductFavorite[]
+  members            OrganizationMember[]
+  products           Product[]
+  offers             Offer[]
+  buyerOrders        Order[]              @relation("BuyerOrders")
+  sellerOrders       Order[]              @relation("SellerOrders")
+  priceAlerts        PriceAlert[]
+  favorites          ProductFavorite[]
+  membershipRequests MembershipRequest[]
 }
 
 model OrganizationMember {
@@ -92,6 +93,27 @@ enum MembershipTier {
   STANDARD
   BASIC
   PREMIUM
+}
+
+// ==== Üyelik Yükseltme Talebi ====
+// Ödeme entegrasyonu yok (MVP); organizasyon BASIC/PREMIUM talep eder,
+// admin onaylar (tier gerçekten uygulanır) veya reddeder.
+
+model MembershipRequest {
+  id              String                  @id @default(uuid())
+  organization_id String
+  requested_tier  MembershipTier
+  status          MembershipRequestStatus @default(PENDING)
+  created_at      DateTime                @default(now())
+  decided_at      DateTime?
+
+  organization Organization @relation(fields: [organization_id], references: [id])
+}
+
+enum MembershipRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 // ==== Konteyner Tipi (parametre tablosu) ====

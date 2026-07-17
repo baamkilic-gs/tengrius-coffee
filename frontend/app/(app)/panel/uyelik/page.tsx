@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { api, getOrganization, setSession, getUser } from "../../../../lib/api";
+import { useEffect, useState } from "react";
+import { api, getOrganization, getUser, setSession } from "../../../../lib/api";
+import { useToast } from "../../../components/Toast";
 
 const TIER_LABEL: Record<string, string> = {
   STANDARD: "Standart",
@@ -9,20 +10,64 @@ const TIER_LABEL: Record<string, string> = {
   PREMIUM: "Premium",
 };
 
+const STATUS_LABEL: Record<string, string> = {
+  PENDING: "Onay bekliyor",
+  APPROVED: "Onaylandı",
+  REJECTED: "Reddedildi",
+};
+
+interface MembershipRequest {
+  id: string;
+  requested_tier: "BASIC" | "PREMIUM";
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  created_at: string;
+  decided_at: string | null;
+}
+
 export default function MembershipPage() {
+  const { showToast } = useToast();
   const [org, setOrg] = useState(getOrganization());
+  const [requests, setRequests] = useState<MembershipRequest[]>([]);
   const [loading, setLoading] = useState<"BASIC" | "PREMIUM" | null>(null);
 
-  const upgrade = async (tier: "BASIC" | "PREMIUM") => {
+  const loadRequests = () => {
+    api("/organizations/membership-requests/mine")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setRequests(Array.isArray(data) ? data : []))
+      .catch(() => setRequests([]));
+  };
+
+  useEffect(() => {
+    loadRequests();
+    // Admin talebimizi onayladıysa üyelik seviyesi tekrar giriş yapmadan güncel görünsün
+    api("/organizations/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((fresh) => {
+        if (!fresh) return;
+        setOrg(fresh);
+        const user = getUser();
+        const token = localStorage.getItem("auth_token");
+        if (user && token) setSession(token, user, fresh);
+      })
+      .catch(() => {});
+  }, []);
+
+  const pending = requests.find((r) => r.status === "PENDING");
+  const latest = requests[0];
+
+  const requestUpgrade = async (tier: "BASIC" | "PREMIUM") => {
     setLoading(tier);
-    const res = await api("/organizations/upgrade", { method: "POST", body: JSON.stringify({ tier }) });
+    const res = await api("/organizations/membership-requests", {
+      method: "POST",
+      body: JSON.stringify({ tier }),
+    });
     setLoading(null);
     if (res.ok) {
-      const updated = await res.json();
-      const user = getUser();
-      const token = localStorage.getItem("auth_token");
-      if (user && token) setSession(token, user, updated);
-      setOrg(updated);
+      showToast("Üyelik talebiniz gönderildi ✓ — admin onayını bekliyor");
+      loadRequests();
+    } else {
+      const err = await res.json().catch(() => ({}));
+      showToast(err.message ?? "Talep gönderilemedi", "error");
     }
   };
 
@@ -40,6 +85,34 @@ export default function MembershipPage() {
         )}
       </div>
 
+      {latest && (
+        <div
+          className={`card !py-3 text-sm ${
+            latest.status === "PENDING"
+              ? "border-[var(--color-gold)]"
+              : latest.status === "APPROVED"
+                ? "border-[var(--success)]"
+                : "border-[var(--error)]"
+          }`}
+        >
+          Son talebiniz: <strong>{TIER_LABEL[latest.requested_tier]}</strong> —{" "}
+          <span
+            className={
+              latest.status === "PENDING"
+                ? "text-[var(--color-gold)]"
+                : latest.status === "APPROVED"
+                  ? "text-[var(--success)]"
+                  : "text-[var(--error)]"
+            }
+          >
+            {STATUS_LABEL[latest.status]}
+          </span>{" "}
+          <span className="text-[var(--text-tertiary)]">
+            ({new Date(latest.created_at).toLocaleDateString("tr-TR")})
+          </span>
+        </div>
+      )}
+
       {org?.membership_tier !== "BASIC" && org?.membership_tier !== "PREMIUM" && (
         <div className="card space-y-3">
           <h2 className="font-semibold">Basic'e Yükselt</h2>
@@ -48,10 +121,15 @@ export default function MembershipPage() {
             şu an için ek bir yetki açmıyor.
           </p>
           <p className="text-xs text-[var(--text-tertiary)]">
-            MVP: gerçek ödeme entegrasyonu henüz aktif değil, bu buton üyeliği demo amaçlı 30 gün aktive eder.
+            MVP: gerçek ödeme entegrasyonu henüz aktif değil — talebiniz admin onayına gider, onaylanırsa
+            üyeliğiniz 30 gün aktive olur.
           </p>
-          <button onClick={() => upgrade("BASIC")} disabled={loading !== null} className="btn btn-secondary">
-            {loading === "BASIC" ? "İşleniyor…" : "Basic'e Yükselt"}
+          <button
+            onClick={() => requestUpgrade("BASIC")}
+            disabled={loading !== null || Boolean(pending)}
+            className="btn btn-secondary"
+          >
+            {loading === "BASIC" ? "Gönderiliyor…" : pending ? "Talebiniz onay bekliyor" : "Basic Talep Et"}
           </button>
         </div>
       )}
@@ -66,10 +144,15 @@ export default function MembershipPage() {
             <li>(Satıcıysanız) öne çıkan listeleme</li>
           </ul>
           <p className="text-xs text-[var(--text-tertiary)]">
-            MVP: gerçek ödeme entegrasyonu henüz aktif değil, bu buton üyeliği demo amaçlı 30 gün aktive eder.
+            MVP: gerçek ödeme entegrasyonu henüz aktif değil — talebiniz admin onayına gider, onaylanırsa
+            üyeliğiniz 30 gün aktive olur.
           </p>
-          <button onClick={() => upgrade("PREMIUM")} disabled={loading !== null} className="btn btn-primary">
-            {loading === "PREMIUM" ? "İşleniyor…" : "Premium'a Yükselt"}
+          <button
+            onClick={() => requestUpgrade("PREMIUM")}
+            disabled={loading !== null || Boolean(pending)}
+            className="btn btn-primary"
+          >
+            {loading === "PREMIUM" ? "Gönderiliyor…" : pending ? "Talebiniz onay bekliyor" : "Premium Talep Et"}
           </button>
         </div>
       )}

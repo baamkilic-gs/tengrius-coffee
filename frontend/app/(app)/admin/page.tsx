@@ -29,12 +29,27 @@ const TIER_LABEL: Record<string, string> = {
   PREMIUM: "Premium",
 };
 
+interface MembershipRequest {
+  id: string;
+  requested_tier: "BASIC" | "PREMIUM";
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  created_at: string;
+  organization: { id: string; name: string; type: "SELLER" | "ROASTER"; membership_tier: string };
+}
+
+const REQUEST_STATUS_LABEL: Record<string, string> = {
+  PENDING: "Bekliyor",
+  APPROVED: "Onaylandı",
+  REJECTED: "Reddedildi",
+};
+
 const emptyForm = { name: "", capacity_kg: "", bag_count: "", bag_weight_kg: "" };
 
 export default function AdminPage() {
   const [ready, setReady] = useState(false);
   const [containerTypes, setContainerTypes] = useState<ContainerType[]>([]);
   const [orgs, setOrgs] = useState<Org[]>([]);
+  const [membershipRequests, setMembershipRequests] = useState<MembershipRequest[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -71,6 +86,22 @@ export default function AdminPage() {
     loadOrgs();
   };
 
+  const loadMembershipRequests = () => {
+    api("/organizations/membership-requests")
+      .then((res) => res.json())
+      .then(setMembershipRequests)
+      .catch(() => setMembershipRequests([]));
+  };
+
+  const decideMembershipRequest = async (r: MembershipRequest, decision: "APPROVED" | "REJECTED") => {
+    await api(`/organizations/membership-requests/${r.id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ decision }),
+    });
+    loadMembershipRequests();
+    loadOrgs();
+  };
+
   useEffect(() => {
     const user = getUser();
     if (!user) {
@@ -84,6 +115,7 @@ export default function AdminPage() {
     setReady(true);
     loadContainerTypes();
     loadOrgs();
+    loadMembershipRequests();
   }, [router]);
 
   const submit = async (e: React.FormEvent) => {
@@ -212,6 +244,54 @@ export default function AdminPage() {
                   </button>
                 </div>
               ))
+          )}
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <div>
+          <h2 className="font-semibold">Üyelik Talepleri</h2>
+          <p className="text-sm text-[var(--text-tertiary)]">
+            Organizasyonların Basic/Premium yükseltme talepleri — onaylarsanız üyelik 30 gün aktive olur,
+            reddederseniz hiçbir şey değişmez.
+          </p>
+        </div>
+        <div className="space-y-2">
+          {membershipRequests.length === 0 ? (
+            <p className="text-sm text-[var(--text-secondary)]">Henüz üyelik talebi yok</p>
+          ) : (
+            membershipRequests.map((r) => (
+              <div key={r.id} className="card flex items-center justify-between text-sm">
+                <span>
+                  <strong>{r.organization.name}</strong> — {TIER_LABEL[r.requested_tier]} talep etti{" "}
+                  <span className="text-[var(--text-tertiary)]">
+                    ({new Date(r.created_at).toLocaleDateString("tr-TR")})
+                  </span>
+                </span>
+                {r.status === "PENDING" ? (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => decideMembershipRequest(r, "APPROVED")}
+                      className="btn btn-primary !py-1 !px-3 !text-xs"
+                    >
+                      Kabul Et
+                    </button>
+                    <button
+                      onClick={() => decideMembershipRequest(r, "REJECTED")}
+                      className="btn btn-secondary !py-1 !px-3 !text-xs"
+                    >
+                      Reddet
+                    </button>
+                  </div>
+                ) : (
+                  <span
+                    className={r.status === "APPROVED" ? "text-[var(--success)]" : "text-[var(--error)]"}
+                  >
+                    {REQUEST_STATUS_LABEL[r.status]}
+                  </span>
+                )}
+              </div>
+            ))
           )}
         </div>
       </section>

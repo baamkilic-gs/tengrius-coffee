@@ -83,24 +83,78 @@ export class OrganizationsController {
   }
 
   /**
-   * POST /organizations/upgrade — Standart → Basic/Premium (MVP: ödeme sağlayıcısı yok,
-   * havale/manuel onay akışının basitleştirilmiş hali). { tier: 'BASIC' | 'PREMIUM' }, 30 gün geçerli.
-   * NOT: Gerçek ödeme entegrasyonu (iyzico/PayTR/Stripe) Faz 2 — bkz. payments modülü.
+   * POST /organizations/membership-requests — Basic/Premium talebi oluşturur (MVP: ödeme
+   * sağlayıcısı yok). Talep PENDING olarak admin'in onayını bekler; admin onaylarsa
+   * tier gerçekten uygulanır (30 gün), reddederse hiçbir şey değişmez.
    */
-  @Post('upgrade')
-  async upgrade(@Req() req: any, @Body() body: any) {
-    const tier = String(body?.tier ?? 'PREMIUM').toUpperCase();
+  @Post('membership-requests')
+  async createMembershipRequest(@Req() req: any, @Body() body: any) {
+    const tier = String(body?.tier ?? '').toUpperCase();
     if (tier !== 'BASIC' && tier !== 'PREMIUM') {
       throw new BadRequestException('tier BASIC veya PREMIUM olmalıdır');
     }
-    const expires = new Date();
-    expires.setDate(expires.getDate() + 30);
-
-    const updated = await this.prisma.organization.update({
-      where: { id: req.user.organization_id },
-      data: { membership_tier: tier as any, membership_expires_at: expires },
+    const pending = await this.prisma.membershipRequest.findFirst({
+      where: { organization_id: req.user.organization_id, status: 'PENDING' },
     });
-    return orgView(updated);
+    if (pending) {
+      throw new BadRequestException('Zaten onay bekleyen bir üyelik talebiniz var');
+    }
+    return this.prisma.membershipRequest.create({
+      data: { organization_id: req.user.organization_id, requested_tier: tier as any },
+    });
+  }
+
+  /** GET /organizations/membership-requests/mine — organizasyonumun talep geçmişi (en yeni önce) */
+  @Get('membership-requests/mine')
+  async myMembershipRequests(@Req() req: any) {
+    return this.prisma.membershipRequest.findMany({
+      where: { organization_id: req.user.organization_id },
+      orderBy: { created_at: 'desc' },
+    });
+  }
+
+  /** GET /organizations/membership-requests — tüm talepleri listeler (yalnız admin) */
+  @Get('membership-requests')
+  async listMembershipRequests(@Req() req: any) {
+    if (req.user.system_role !== 'ADMIN') {
+      throw new ForbiddenException('Bu listeyi yalnızca admin görebilir');
+    }
+    const requests = await this.prisma.membershipRequest.findMany({
+      orderBy: { created_at: 'desc' },
+      include: { organization: { select: { id: true, name: true, type: true, membership_tier: true } } },
+    });
+    return requests;
+  }
+
+  /** PATCH /organizations/membership-requests/:id — { decision: 'APPROVED'|'REJECTED' } (yalnız admin) */
+  @Patch('membership-requests/:id')
+  async decideMembershipRequest(@Req() req: any, @Param('id') id: string, @Body() body: any) {
+    if (req.user.system_role !== 'ADMIN') {
+      throw new ForbiddenException('Bu işlemi yalnızca admin yapabilir');
+    }
+    const decision = String(body?.decision ?? '').toUpperCase();
+    if (decision !== 'APPROVED' && decision !== 'REJECTED') {
+      throw new BadRequestException('decision APPROVED veya REJECTED olmalıdır');
+    }
+    const request = await this.prisma.membershipRequest.findUnique({ where: { id } });
+    if (!request) throw new NotFoundException('Talep bulunamadı');
+    if (request.status !== 'PENDING') {
+      throw new BadRequestException('Bu talep zaten karara bağlanmış');
+    }
+
+    if (decision === 'APPROVED') {
+      const expires = new Date();
+      expires.setDate(expires.getDate() + 30);
+      await this.prisma.organization.update({
+        where: { id: request.organization_id },
+        data: { membership_tier: request.requested_tier, membership_expires_at: expires },
+      });
+    }
+
+    return this.prisma.membershipRequest.update({
+      where: { id },
+      data: { status: decision as any, decided_at: new Date() },
+    });
   }
 
   /**
