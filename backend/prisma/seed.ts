@@ -29,14 +29,17 @@ async function main() {
     },
   });
 
+  // NOT: Bu demo satıcı hesabı eskiden ayrıca sistem admini de yapılıyordu (role: 'ADMIN') —
+  // admin paneline gerçek yetkiler (üyelik onay/red vb.) eklenince bu ayrım kaldırıldı.
+  // Admin erişimi artık yalnızca dedike bir hesaba (bkz. admin@coffee.tengrius.com) veriliyor.
   const sellerUser = await prisma.user.upsert({
     where: { email: 'satici@tengrius-coffee.local' },
-    update: { role: 'ADMIN' },
+    update: {},
     create: {
       email: 'satici@tengrius-coffee.local',
       full_name: 'Örnek Satıcı',
       password_hash: await bcrypt.hash('satici123', 10),
-      role: 'ADMIN', // ayrıca sistem admini — konteyner tipi parametrelerini yönetebilir
+      role: 'MEMBER',
     },
   });
 
