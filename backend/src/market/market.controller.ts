@@ -1,4 +1,5 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, Req } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma.service';
 import { Public } from '../auth/public.decorator';
 import { decimalFields } from '../common/serialize';
@@ -21,7 +22,24 @@ export class MarketController {
   private ratesCache: RatesPayload | null = null;
   private ratesCacheAt = 0;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly jwtService: JwtService,
+  ) {}
+
+  /** @Public() uçlarda Authorization varsa çözer; yoksa/geçersizse sessizce null döner (anonim davran). */
+  private async tryGetOrg(req: any) {
+    const authHeader: string | undefined = req?.headers?.['authorization'];
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice('Bearer '.length) : undefined;
+    if (!token) return null;
+    try {
+      const payload = await this.jwtService.verifyAsync(token);
+      if (!payload?.organization_id) return null;
+      return this.prisma.organization.findUnique({ where: { id: payload.organization_id } });
+    } catch {
+      return null;
+    }
+  }
 
   /**
    * GET /market/home — ana sayfa verisi: öne çıkan (premium) ürünler +
@@ -80,19 +98,25 @@ export class MarketController {
 
   /**
    * GET /market/completed-sales — anasayfa "gerçekleşmiş satışlar" vitrini.
-   * Gerçek COMPLETED siparişler; rekabet hassasiyeti nedeniyle firma adı ve
-   * fiyat gösterilmez, yalnızca ülke/ürün/miktar/tarih anonim olarak sunulur.
+   * Varsayılan: rekabet hassasiyeti nedeniyle firma adı ve fiyat gösterilmez,
+   * yalnızca ülke/ürün/miktar/tarih anonim olarak sunulur. İstek Premium bir
+   * organizasyona ait geçerli bir token taşıyorsa firma adları/fiyat/sipariş
+   * no da eklenir (bkz. tryGetOrg — @Public() olduğu için auth zorunlu değil).
    */
   @Public()
   @Get('completed-sales')
-  async completedSales() {
+  async completedSales(@Req() req: any) {
+    const org = await this.tryGetOrg(req);
+    const isPremium = org?.membership_tier === 'PREMIUM';
+
     const orders = await this.prisma.order.findMany({
       where: { order_status: 'COMPLETED' },
       take: 12,
       orderBy: { created_at: 'desc' },
       include: {
         product: { select: { title: true, country: true, bean_type: true } },
-        buyer: { select: { country: true } },
+        buyer: { select: { name: true, country: true } },
+        seller: { select: { name: true } },
       },
     });
 
@@ -103,6 +127,16 @@ export class MarketController {
       quantity_tons: Math.round((o.quantity_kg / 1000) * 10) / 10,
       buyer_label: o.buyer.country ? `${o.buyer.country} merkezli bir alıcı` : 'Bir alıcı',
       completed_at: o.created_at,
+      ...(isPremium
+        ? {
+            order_no: o.order_no,
+            buyer_name: o.buyer.name,
+            seller_name: o.seller.name,
+            unit_price: Number(o.unit_price),
+            total_amount: Number(o.total_amount),
+            currency: o.currency,
+          }
+        : {}),
     }));
   }
 

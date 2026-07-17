@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { api } from "../../lib/api";
+import { api, getUser, getOrganization } from "../../lib/api";
+import { useFavorites } from "../../lib/useFavorites";
 import { formatNumber } from "../../lib/format";
 import FlagIcon from "../components/FlagIcon";
 import Reveal from "../components/Reveal";
 import CoffeeBeltMap from "../components/CoffeeBeltMap";
+import { FavoriteButton } from "../components/ProductsListing";
 
 const SPECIES = [
   { common: "Arabica", accent: "#5a3420", rgb: "90,52,32", desc: "Aromatik ve kompleks — dünya kahve üretiminin çoğunluğu.", tilt: -3 },
@@ -33,6 +35,13 @@ interface CompletedSale {
   quantity_tons: number;
   buyer_label: string;
   completed_at: string;
+  // Yalnızca istek Premium bir organizasyona aitse dolu gelir (bkz. backend tryGetOrg)
+  order_no?: number;
+  buyer_name?: string;
+  seller_name?: string;
+  unit_price?: number;
+  total_amount?: number;
+  currency?: string;
 }
 
 interface VerifiedSeller {
@@ -45,6 +54,20 @@ export default function HomePage() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [completedSales, setCompletedSales] = useState<CompletedSale[]>([]);
   const [verifiedSellers, setVerifiedSellers] = useState<VerifiedSeller[]>([]);
+  const [scrollY, setScrollY] = useState(0);
+  const user = getUser();
+  const org = getOrganization();
+
+  useEffect(() => {
+    const onScroll = () => setScrollY(window.scrollY);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // 0 = sayfa en üstte (büyük hero), 1 = 240px+ scroll edilmiş (daralmış hero)
+  const shrink = Math.min(scrollY / 240, 1);
+  const { isFavorite, toggleFavorite, loggedIn } = useFavorites();
 
   useEffect(() => {
     api("/products")
@@ -65,20 +88,28 @@ export default function HomePage() {
 
   return (
     <div>
-      {/* Hero — yalnızca butonlara kadar daraltıldı */}
+      {/* Hero — açılışta hafif büyük, aşağı scroll edildikçe daralır */}
       <section className="hero-gradient text-[var(--color-cream)] overflow-hidden flex items-center">
-        <div className="max-w-3xl mx-auto px-6 py-4 text-center space-y-2">
-          <p className="enter-fade-up uppercase tracking-[0.2em] text-xs text-[var(--color-gold-light)] font-semibold">
+        <div
+          className="max-w-3xl mx-auto px-6 text-center space-y-2 transition-[padding] duration-200 ease-out"
+          style={{ paddingTop: 56 - shrink * 40, paddingBottom: 56 - shrink * 40 }}
+        >
+          <p
+            className="enter-fade-up uppercase tracking-[0.2em] text-[var(--color-gold-light)] font-semibold transition-[font-size] duration-200 ease-out"
+            style={{ fontSize: `${18 - shrink * 6}px` }}
+          >
             Çiğ Kahve Pazar Yeri
           </p>
-          <div className="enter-fade-up flex flex-wrap gap-3 justify-center pt-1">
-            <Link href="/urunler" className="btn btn-primary">
-              Ürünlere Göz At
-            </Link>
-            <Link href="/kayit" className="btn btn-secondary">
-              Ücretsiz Kayıt Ol
-            </Link>
-          </div>
+          {!user && (
+            <div className="enter-fade-up flex flex-wrap gap-3 justify-center pt-1">
+              <Link href="/urunler" className="btn btn-primary">
+                Ürünlere Göz At
+              </Link>
+              <Link href="/kayit" className="btn btn-secondary">
+                Ücretsiz Kayıt Ol
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 
@@ -97,6 +128,7 @@ export default function HomePage() {
               <table className="w-full text-sm border-collapse data-table">
                 <thead>
                   <tr>
+                    {loggedIn && <th className="py-3 px-3 w-8" />}
                     <th className="py-3 px-4">Ürün</th>
                     <th className="py-3 px-4">Ülke</th>
                     <th className="py-3 px-4">Tür</th>
@@ -110,6 +142,11 @@ export default function HomePage() {
                 <tbody>
                   {listings.map((p) => (
                     <tr key={p.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface-alt)]">
+                      {loggedIn && (
+                        <td className="py-2.5 px-3">
+                          <FavoriteButton productId={p.id} isFavorite={isFavorite(p.id)} onToggle={toggleFavorite} />
+                        </td>
+                      )}
                       <td className="py-2.5 px-4">
                         <Link href={`/urunler/${p.id}`} className="link font-medium">
                           {p.title}
@@ -181,25 +218,68 @@ export default function HomePage() {
 
         <Reveal>
           <h2 className="text-xl font-semibold mb-2 text-[var(--color-coffee)]">Gerçekleşmiş Satışlar</h2>
-          <p className="text-sm text-[var(--text-tertiary)] mb-5">Platformda tamamlanmış son işlemler</p>
+          <p className="text-sm text-[var(--text-tertiary)] mb-1">Platformda tamamlanmış son işlemler</p>
+          {user && org?.membership_tier !== "PREMIUM" && (
+            <p className="text-xs text-[var(--text-tertiary)] mb-4">
+              <Link href="/panel/uyelik" className="link">
+                Premium üye olun
+              </Link>{" "}
+              — alıcı/satıcı firma adları ve fiyat detaylarını da görün.
+            </p>
+          )}
+          {!user && <p className="text-xs text-[var(--text-tertiary)] mb-4">Premium üyeler firma adı ve fiyat detaylarını da görebilir.</p>}
           {completedSales.length === 0 ? (
-            <p className="text-[var(--text-secondary)]">Henüz tamamlanmış satış yok</p>
+            <p className="text-[var(--text-secondary)] mt-4">Henüz tamamlanmış satış yok</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {completedSales.map((s, i) => (
-                <div key={i} className="card">
-                  <p className="font-medium">{s.product_title}</p>
-                  <p className="text-sm text-[var(--text-secondary)]">
-                    {s.origin_country} · {s.bean_type}
-                  </p>
-                  <p className="mt-2 text-sm text-[var(--color-coffee)]">
-                    {formatNumber(s.quantity_tons, 1)} ton — {s.buyer_label}
-                  </p>
-                  <p className="text-xs text-[var(--text-tertiary)] mt-1">
-                    {new Date(s.completed_at).toLocaleDateString("tr-TR")}
-                  </p>
-                </div>
-              ))}
+            <div className="overflow-x-auto rounded-xl border border-[var(--border)] mt-4">
+              <table className="w-full text-sm border-collapse data-table">
+                <thead>
+                  <tr>
+                    {completedSales[0]?.order_no !== undefined && <th className="py-3 px-4">Sipariş No</th>}
+                    <th className="py-3 px-4">İlan</th>
+                    <th className="py-3 px-4">Menşe</th>
+                    <th className="py-3 px-4">Tür</th>
+                    <th className="py-3 px-4">Miktar</th>
+                    {completedSales[0]?.buyer_name !== undefined ? (
+                      <>
+                        <th className="py-3 px-4">Alıcı</th>
+                        <th className="py-3 px-4">Satıcı</th>
+                        <th className="py-3 px-4">Fiyat</th>
+                      </>
+                    ) : (
+                      <th className="py-3 px-4">Alıcı</th>
+                    )}
+                    <th className="py-3 px-4">Tarih</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {completedSales.map((s, i) => (
+                    <tr key={i} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface-alt)]">
+                      {s.order_no !== undefined && <td className="py-2.5 px-4 ref-no">#{s.order_no}</td>}
+                      <td className="py-2.5 px-4">{s.product_title}</td>
+                      <td className="py-2.5 px-4">
+                        <FlagIcon country={s.origin_country} /> {s.origin_country}
+                      </td>
+                      <td className="py-2.5 px-4">{s.bean_type}</td>
+                      <td className="py-2.5 px-4">{formatNumber(s.quantity_tons, 1)} ton</td>
+                      {s.buyer_name !== undefined ? (
+                        <>
+                          <td className="py-2.5 px-4">{s.buyer_name}</td>
+                          <td className="py-2.5 px-4">{s.seller_name}</td>
+                          <td className="py-2.5 px-4 font-semibold text-[var(--color-coffee)]">
+                            {formatNumber(s.unit_price ?? 0, 4)} {s.currency}
+                          </td>
+                        </>
+                      ) : (
+                        <td className="py-2.5 px-4 text-[var(--text-secondary)]">{s.buyer_label}</td>
+                      )}
+                      <td className="py-2.5 px-4 text-[var(--text-tertiary)]">
+                        {new Date(s.completed_at).toLocaleDateString("tr-TR")}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </Reveal>

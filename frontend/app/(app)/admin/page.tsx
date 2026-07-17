@@ -14,19 +14,27 @@ interface ContainerType {
   is_active: boolean;
 }
 
-interface SellerOrg {
+interface Org {
   id: string;
   name: string;
+  type: "SELLER" | "ROASTER";
   country: string | null;
   verified: boolean;
+  membership_tier: "STANDARD" | "BASIC" | "PREMIUM";
 }
+
+const TIER_LABEL: Record<string, string> = {
+  STANDARD: "Standart",
+  BASIC: "Basic",
+  PREMIUM: "Premium",
+};
 
 const emptyForm = { name: "", capacity_kg: "", bag_count: "", bag_weight_kg: "" };
 
 export default function AdminPage() {
   const [ready, setReady] = useState(false);
   const [containerTypes, setContainerTypes] = useState<ContainerType[]>([]);
-  const [sellers, setSellers] = useState<SellerOrg[]>([]);
+  const [orgs, setOrgs] = useState<Org[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -40,19 +48,27 @@ export default function AdminPage() {
       .catch(() => setContainerTypes([]));
   };
 
-  const loadSellers = () => {
+  const loadOrgs = () => {
     api("/organizations")
       .then((res) => res.json())
-      .then(setSellers)
-      .catch(() => setSellers([]));
+      .then(setOrgs)
+      .catch(() => setOrgs([]));
   };
 
-  const toggleVerified = async (s: SellerOrg) => {
+  const toggleVerified = async (s: Org) => {
     await api(`/organizations/${s.id}/verify`, {
       method: "PATCH",
       body: JSON.stringify({ verified: !s.verified }),
     });
-    loadSellers();
+    loadOrgs();
+  };
+
+  const setMembership = async (o: Org, tier: string) => {
+    await api(`/organizations/${o.id}/membership`, {
+      method: "PATCH",
+      body: JSON.stringify({ tier }),
+    });
+    loadOrgs();
   };
 
   useEffect(() => {
@@ -67,7 +83,7 @@ export default function AdminPage() {
     }
     setReady(true);
     loadContainerTypes();
-    loadSellers();
+    loadOrgs();
   }, [router]);
 
   const submit = async (e: React.FormEvent) => {
@@ -180,27 +196,61 @@ export default function AdminPage() {
           </p>
         </div>
         <div className="space-y-2">
-          {sellers.length === 0 ? (
+          {orgs.filter((o) => o.type === "SELLER").length === 0 ? (
             <p className="text-sm text-[var(--text-secondary)]">Henüz satıcı organizasyonu yok</p>
           ) : (
-            sellers.map((s) => (
-              <div key={s.id} className="card flex items-center justify-between text-sm">
+            orgs
+              .filter((o) => o.type === "SELLER")
+              .map((s) => (
+                <div key={s.id} className="card flex items-center justify-between text-sm">
+                  <span>
+                    <strong>{s.name}</strong> {s.country ? `— ${s.country}` : ""}{" "}
+                    {s.verified && <span className="badge badge-verified">Yetkili Satıcı</span>}
+                  </span>
+                  <button onClick={() => toggleVerified(s)} className="link text-xs">
+                    {s.verified ? "Rozeti kaldır" : "Yetkili Satıcı yap"}
+                  </button>
+                </div>
+              ))
+          )}
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <div>
+          <h2 className="font-semibold">Üyelik Seviyeleri</h2>
+          <p className="text-sm text-[var(--text-tertiary)]">
+            Ödeme entegrasyonu henüz aktif olmadığı için üyelik seviyesi burada elle yönetilir
+            (hem satıcı hem roaster organizasyonları için).
+          </p>
+        </div>
+        <div className="space-y-2">
+          {orgs.length === 0 ? (
+            <p className="text-sm text-[var(--text-secondary)]">Henüz organizasyon yok</p>
+          ) : (
+            orgs.map((o) => (
+              <div key={o.id} className="card flex items-center justify-between text-sm">
                 <span>
-                  <strong>{s.name}</strong> {s.country ? `— ${s.country}` : ""}{" "}
-                  {s.verified && <span className="badge badge-verified">Yetkili Satıcı</span>}
+                  <strong>{o.name}</strong> — {o.type === "SELLER" ? "Satıcı" : "Roaster"}
                 </span>
-                <button onClick={() => toggleVerified(s)} className="link text-xs">
-                  {s.verified ? "Rozeti kaldır" : "Yetkili Satıcı yap"}
-                </button>
+                <select
+                  value={o.membership_tier}
+                  onChange={(e) => setMembership(o, e.target.value)}
+                  className="input !py-1 !text-xs w-32"
+                >
+                  {Object.entries(TIER_LABEL).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
               </div>
             ))
           )}
         </div>
       </section>
 
-      <p className="text-[var(--text-tertiary)] text-sm">
-        Kullanıcı/ürün onayı ve daha kapsamlı üyelik yönetimi ekranları ileride eklenecek.
-      </p>
+      <p className="text-[var(--text-tertiary)] text-sm">Kullanıcı/ürün onayı ekranları ileride eklenecek.</p>
     </div>
   );
 }

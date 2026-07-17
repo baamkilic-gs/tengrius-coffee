@@ -68,6 +68,27 @@ export class ProductsController {
     return products.map(productView);
   }
 
+  /** GET /products/favorites — organizasyonumun favorilediği ilanlar (tam ürün görünümü) */
+  @Get('favorites')
+  async favorites(@Req() req: any) {
+    const favorites = await this.prisma.productFavorite.findMany({
+      where: { organization_id: req.user.organization_id },
+      orderBy: { created_at: 'desc' },
+      include: { product: { include } },
+    });
+    return favorites.map((f) => productView(f.product));
+  }
+
+  /** GET /products/favorite-ids — favorilenen ürün id'leri (listelerde yıldız durumunu göstermek için hafif uç) */
+  @Get('favorite-ids')
+  async favoriteIds(@Req() req: any) {
+    const favorites = await this.prisma.productFavorite.findMany({
+      where: { organization_id: req.user.organization_id },
+      select: { product_id: true },
+    });
+    return favorites.map((f) => f.product_id);
+  }
+
   /** GET /products/:id — ürün detayı (herkese açık) */
   @Public()
   @Get(':id')
@@ -75,6 +96,28 @@ export class ProductsController {
     const product = await this.prisma.product.findUnique({ where: { id }, include });
     if (!product) throw new NotFoundException('Ürün bulunamadı');
     return productView(product);
+  }
+
+  /** POST /products/:id/favorite — ilanı favorilere ekle */
+  @Post(':id/favorite')
+  async addFavorite(@Req() req: any, @Param('id') id: string) {
+    const product = await this.prisma.product.findUnique({ where: { id } });
+    if (!product) throw new NotFoundException('Ürün bulunamadı');
+    await this.prisma.productFavorite.upsert({
+      where: { organization_id_product_id: { organization_id: req.user.organization_id, product_id: id } },
+      create: { organization_id: req.user.organization_id, product_id: id },
+      update: {},
+    });
+    return { favorited: true };
+  }
+
+  /** DELETE /products/:id/favorite — ilanı favorilerden çıkar */
+  @Delete(':id/favorite')
+  async removeFavorite(@Req() req: any, @Param('id') id: string) {
+    await this.prisma.productFavorite.deleteMany({
+      where: { organization_id: req.user.organization_id, product_id: id },
+    });
+    return { favorited: false };
   }
 
   /** POST /products — yeni parti/lot girişi (yalnız SELLER organizasyonlar) */

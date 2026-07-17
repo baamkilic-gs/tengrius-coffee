@@ -63,6 +63,7 @@ model Organization {
   buyerOrders  Order[]              @relation("BuyerOrders")
   sellerOrders Order[]              @relation("SellerOrders")
   priceAlerts  PriceAlert[]
+  favorites    ProductFavorite[]
 }
 
 model OrganizationMember {
@@ -89,6 +90,7 @@ enum OrgType {
 
 enum MembershipTier {
   STANDARD
+  BASIC
   PREMIUM
 }
 
@@ -145,6 +147,21 @@ model Product {
   priceAlerts   PriceAlert[]
   priceHistory  PriceHistory[]
   orders        Order[]
+  favorites     ProductFavorite[]
+}
+
+// ==== Favori İlanlar ====
+
+model ProductFavorite {
+  id              String   @id @default(uuid())
+  organization_id String
+  product_id      String
+  created_at      DateTime @default(now())
+
+  organization Organization @relation(fields: [organization_id], references: [id])
+  product      Product      @relation(fields: [product_id], references: [id])
+
+  @@unique([organization_id, product_id])
 }
 
 enum ProductStatus {

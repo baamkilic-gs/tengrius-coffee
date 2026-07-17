@@ -18,7 +18,7 @@ export interface AuthOrganization {
   name: string;
   type: "SELLER" | "ROASTER";
   country: string | null;
-  membership_tier: "STANDARD" | "PREMIUM";
+  membership_tier: "STANDARD" | "BASIC" | "PREMIUM";
   membership_expires_at: string | null;
   verified: boolean;
 }

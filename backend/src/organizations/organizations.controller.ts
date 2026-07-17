@@ -13,6 +13,7 @@ import {
 import { PrismaService } from '../prisma.service';
 
 const ORG_TYPES = ['SELLER', 'ROASTER'];
+const MEMBERSHIP_TIERS = ['STANDARD', 'BASIC', 'PREMIUM'];
 
 const orgView = (o: any) => ({
   id: o.id,
@@ -82,33 +83,62 @@ export class OrganizationsController {
   }
 
   /**
-   * POST /organizations/upgrade — Standart → Premium (MVP: ödeme sağlayıcısı yok,
-   * havale/manuel onay akışının basitleştirilmiş hali). 30 gün geçerli.
+   * POST /organizations/upgrade — Standart → Basic/Premium (MVP: ödeme sağlayıcısı yok,
+   * havale/manuel onay akışının basitleştirilmiş hali). { tier: 'BASIC' | 'PREMIUM' }, 30 gün geçerli.
    * NOT: Gerçek ödeme entegrasyonu (iyzico/PayTR/Stripe) Faz 2 — bkz. payments modülü.
    */
   @Post('upgrade')
-  async upgrade(@Req() req: any) {
+  async upgrade(@Req() req: any, @Body() body: any) {
+    const tier = String(body?.tier ?? 'PREMIUM').toUpperCase();
+    if (tier !== 'BASIC' && tier !== 'PREMIUM') {
+      throw new BadRequestException('tier BASIC veya PREMIUM olmalıdır');
+    }
     const expires = new Date();
     expires.setDate(expires.getDate() + 30);
 
     const updated = await this.prisma.organization.update({
       where: { id: req.user.organization_id },
-      data: { membership_tier: 'PREMIUM', membership_expires_at: expires },
+      data: { membership_tier: tier as any, membership_expires_at: expires },
     });
     return orgView(updated);
   }
 
-  /** GET /organizations — tüm satıcı organizasyonları listeler (yalnız admin) — "Yetkili Satıcı" rozeti yönetimi için */
+  /**
+   * GET /organizations — tüm organizasyonları listeler (yalnız admin) — "Yetkili Satıcı"
+   * rozeti ve üyelik seviyesi yönetimi için (hem SELLER hem ROASTER premium olabilir).
+   */
   @Get()
-  async listSellers(@Req() req: any) {
+  async listOrganizations(@Req() req: any) {
     if (req.user.system_role !== 'ADMIN') {
       throw new ForbiddenException('Bu listeyi yalnızca admin görebilir');
     }
     const orgs = await this.prisma.organization.findMany({
-      where: { type: 'SELLER' },
       orderBy: { created_at: 'desc' },
     });
     return orgs.map(orgView);
+  }
+
+  /** PATCH /organizations/:id/membership — { tier, expires_at? } — admin üyelik seviyesini elle yönetir */
+  @Patch(':id/membership')
+  async setMembership(@Req() req: any, @Param('id') id: string, @Body() body: any) {
+    if (req.user.system_role !== 'ADMIN') {
+      throw new ForbiddenException('Bu işlemi yalnızca admin yapabilir');
+    }
+    const tier = String(body?.tier ?? '').toUpperCase();
+    if (!MEMBERSHIP_TIERS.includes(tier)) {
+      throw new BadRequestException('tier STANDARD, BASIC veya PREMIUM olmalıdır');
+    }
+    const org = await this.prisma.organization.findUnique({ where: { id } });
+    if (!org) throw new NotFoundException('Organizasyon bulunamadı');
+
+    const updated = await this.prisma.organization.update({
+      where: { id },
+      data: {
+        membership_tier: tier as any,
+        membership_expires_at: tier === 'STANDARD' ? null : (body?.expires_at ? new Date(body.expires_at) : org.membership_expires_at),
+      },
+    });
+    return orgView(updated);
   }
 
   /** PATCH /organizations/:id/verify — { verified } — "Yetkili Satıcı" rozetini admin verir/kaldırır */
