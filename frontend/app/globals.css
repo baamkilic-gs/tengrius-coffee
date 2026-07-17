@@ -228,6 +228,29 @@ h1, h2, h3, h4, h5, h6 {
   animation: toast-center-pop 1.3s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* Islem surerken (ör. yeni ilan kaydedilirken) blur arka plan + "lutfen bekleyiniz" karti */
+.wait-overlay {
+  background: rgba(36, 27, 20, 0.14);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: toast-center-pop-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes toast-center-pop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid var(--border);
+  border-top-color: var(--color-gold);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* Geriye donuk: eski enter-fade-up cagrilarini reveal ile ayni hissi versin diye tutuyoruz */
 @keyframes fade-in-up {
   from { opacity: 0; transform: translateY(14px); }

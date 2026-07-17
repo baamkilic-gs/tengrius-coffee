@@ -94,7 +94,7 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
         {railItem("/panel", ICONS.home, "Genel Bakış")}
         <div className="w-6 border-t border-[var(--border)] my-1" />
         {railItem("/panel/ilanlar", ICONS.listings, "İlanlar")}
-        {canSell && railItem("/panel/urunlerim", ICONS.myProducts, "Ürünlerim")}
+        {canSell && railItem("/panel/urunlerim", ICONS.myProducts, "İlanlarım")}
         {railItem("/panel/tekliflerim", ICONS.offers, "Tekliflerim")}
         {railItem("/panel/siparislerim", ICONS.orders, "Siparişlerim")}
         {railItem("/panel/favoriler", ICONS.favorites, "Favori İlanlarım")}

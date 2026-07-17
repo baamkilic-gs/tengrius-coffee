@@ -5,6 +5,7 @@ import { api } from "../../../../lib/api";
 import { formatNumber } from "../../../../lib/format";
 import { COUNTRIES } from "../../../../lib/countries";
 import FlagIcon from "../../../components/FlagIcon";
+import DetailModal from "../../../components/DetailModal";
 
 const CURRENT_YEAR = new Date().getFullYear();
 const HARVEST_YEARS = Array.from({ length: 5 }, (_, i) => CURRENT_YEAR - i);
@@ -60,9 +61,10 @@ export default function MyProductsPage() {
   const [containerTypes, setContainerTypes] = useState<ContainerType[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [justAddedId, setJustAddedId] = useState<string | null>(null);
 
   const load = () => {
     api("/products/mine")
@@ -83,7 +85,6 @@ export default function MyProductsPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setSuccess(null);
     setSubmitting(true);
     const res = await api("/products", {
       method: "POST",
@@ -107,232 +108,260 @@ export default function MyProductsPage() {
     });
     setSubmitting(false);
     if (res.ok) {
+      const created = await res.json();
       setForm(emptyForm);
-      setSuccess("Ürün eklendi.");
+      setModalOpen(false);
+      setJustAddedId(created.id);
       load();
     } else {
       const err = await res.json().catch(() => ({}));
-      setError(err.message ?? "Ürün eklenemedi");
+      setError(err.message ?? "İlan eklenemedi");
     }
   };
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-2xl font-semibold text-[var(--color-coffee)]">Ürünlerim</h1>
-
-      <form onSubmit={submit} className="card space-y-3">
-        <h2 className="font-semibold">Yeni Parti Ekle</h2>
-        <div className="grid grid-cols-2 gap-3">
-          <select
-            value={form.country}
-            onChange={(e) => setForm({ ...form, country: e.target.value })}
-            required
-            className="input"
-          >
-            <option value="">Ülke seçin</option>
-            {COUNTRIES.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-          <input
-            placeholder="Başlık"
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-            required
-            className="input"
-          />
-          <select
-            value={form.bean_type}
-            onChange={(e) => setForm({ ...form, bean_type: e.target.value })}
-            className="input"
-          >
-            <option>Arabica</option>
-            <option>Robusta</option>
-            <option>Liberica</option>
-            <option>Excelsa</option>
-            <option>Blend</option>
-          </select>
-          <input
-            type="number"
-            placeholder="Stok (ton) — örn. 19"
-            value={form.quantity_tons}
-            onChange={(e) => setForm({ ...form, quantity_tons: e.target.value })}
-            required
-            className="input"
-          />
-        </div>
-
-        <div className="border-t border-[var(--border)] pt-3 space-y-2">
-          <p className="text-xs text-[var(--text-tertiary)] uppercase tracking-wide font-semibold">Detaylar</p>
-          <textarea
-            placeholder="Açıklama"
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            rows={2}
-            className="input w-full"
-          />
-          <div className="grid grid-cols-2 gap-3">
-            <select
-              value={form.harvest_year}
-              onChange={(e) => setForm({ ...form, harvest_year: e.target.value })}
-              className="input"
-            >
-              <option value="">Hasat yılı seçin</option>
-              {HARVEST_YEARS.map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </select>
-            <select
-              value={form.processing_method}
-              onChange={(e) => setForm({ ...form, processing_method: e.target.value })}
-              className="input"
-            >
-              <option value="">İşlem türü seçin</option>
-              {PROCESSING_METHODS.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
-            <input
-              type="number"
-              step="0.1"
-              placeholder="Nem oranı (%)"
-              value={form.moisture_pct}
-              onChange={(e) => setForm({ ...form, moisture_pct: e.target.value })}
-              className="input"
-            />
-            <input
-              type="number"
-              step="0.1"
-              placeholder="Skor"
-              value={form.score}
-              onChange={(e) => setForm({ ...form, score: e.target.value })}
-              className="input"
-            />
-          </div>
-          <textarea
-            placeholder="Tadım notları"
-            value={form.cupping_notes}
-            onChange={(e) => setForm({ ...form, cupping_notes: e.target.value })}
-            rows={2}
-            className="input w-full"
-          />
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={form.greenbro_supplied}
-              onChange={(e) => setForm({ ...form, greenbro_supplied: e.target.checked })}
-            />
-            Bu parti GreenBro'ya tedarik ediliyor/uygun
-          </label>
-        </div>
-
-        <div className="border-t border-[var(--border)] pt-3 space-y-2">
-          <p className="text-xs text-[var(--text-tertiary)] uppercase tracking-wide font-semibold">
-            Fiyatlandırma
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            <input
-              type="number"
-              step="0.0001"
-              placeholder="Kg başına fiyat (USD, zorunlu)"
-              value={form.price_per_kg}
-              onChange={(e) => setForm({ ...form, price_per_kg: e.target.value })}
-              required
-              className="input"
-            />
-            <input
-              type="number"
-              step="0.01"
-              placeholder="Ton başına fiyat (boş = otomatik)"
-              value={form.price_per_ton}
-              onChange={(e) => setForm({ ...form, price_per_ton: e.target.value })}
-              className="input"
-            />
-            <select
-              value={form.container_type_id}
-              onChange={(e) => setForm({ ...form, container_type_id: e.target.value })}
-              className="input"
-            >
-              <option value="">Konteyner tipi seçin (opsiyonel)</option>
-              {containerTypes.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name} ({c.capacity_kg / 1000} ton)
-                </option>
-              ))}
-            </select>
-            <input
-              type="number"
-              step="0.01"
-              placeholder="Konteyner fiyatı (boş = otomatik)"
-              value={form.price_per_container}
-              onChange={(e) => setForm({ ...form, price_per_container: e.target.value })}
-              className="input"
-            />
-          </div>
-          <p className="text-xs text-[var(--text-tertiary)]">
-            Ton ve konteyner fiyatlarını boş bırakırsanız kg fiyatından otomatik hesaplanır; toplu alım
-            iskontosu uygulayacaksanız elle girebilirsiniz.
-          </p>
-        </div>
-
-        {error && <p className="text-sm text-[var(--error)]">{error}</p>}
-        {success && <p className="text-sm text-[var(--success)]">{success}</p>}
-        <button type="submit" disabled={submitting} className="btn btn-primary">
-          {submitting ? "Ekleniyor…" : "Ekle"}
+    <div className="space-y-6">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h1 className="text-2xl font-semibold text-[var(--color-coffee)]">İlanlarım</h1>
+        <button onClick={() => setModalOpen(true)} className="btn btn-primary">
+          + Yeni İlan Ekle
         </button>
-      </form>
+      </div>
 
       {loading ? (
         <p className="text-[var(--text-secondary)]">Yükleniyor…</p>
+      ) : products.length === 0 ? (
+        <p className="text-[var(--text-secondary)] text-sm">
+          Henüz ilanınız yok — "Yeni İlan Ekle" ile ilk partinizi ekleyin.
+        </p>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
           <table className="w-full text-sm border-collapse data-table">
             <thead>
               <tr>
-                <th className="py-2">Ülke</th>
-                <th className="py-2">Başlık</th>
-                <th className="py-2">Açıklama</th>
-                <th className="py-2">Kg</th>
-                <th className="py-2">Ton</th>
-                <th className="py-2">Stok (ton)</th>
-                <th className="py-2">Durum</th>
+                <th className="py-2.5 px-4">Ülke</th>
+                <th className="py-2.5 px-4">Başlık</th>
+                <th className="py-2.5 px-4">Açıklama</th>
+                <th className="py-2.5 px-4">Kg</th>
+                <th className="py-2.5 px-4">Ton</th>
+                <th className="py-2.5 px-4">Stok (ton)</th>
+                <th className="py-2.5 px-4">Durum</th>
               </tr>
             </thead>
             <tbody>
               {products.map((p) => (
-                <tr key={p.id} className="border-b border-[var(--border)]">
-                  <td className="py-2">
+                <tr
+                  key={p.id}
+                  className={`border-b border-[var(--border)] last:border-0 transition-colors ${
+                    p.id === justAddedId ? "bg-[var(--success-bg)]" : "hover:bg-[var(--surface-alt)]"
+                  }`}
+                >
+                  <td className="py-2.5 px-4">
                     <FlagIcon country={p.country} /> {p.country}
                   </td>
-                  <td className="py-2">
+                  <td className="py-2.5 px-4">
                     {p.title}
                     {p.greenbro_supplied && (
                       <span className="badge ml-1" title="GreenBro'ya tedarik ediliyor/uygun">
                         GreenBro
                       </span>
                     )}
+                    {p.id === justAddedId && <span className="badge badge-verified ml-1">Yeni</span>}
                   </td>
-                  <td className="py-2 max-w-[220px] truncate text-[var(--text-secondary)]">
+                  <td className="py-2.5 px-4 max-w-[220px] truncate text-[var(--text-secondary)]">
                     {p.description ?? "—"}
                   </td>
-                  <td className="py-2">
+                  <td className="py-2.5 px-4">
                     {formatNumber(p.price_per_kg, 4)} {p.currency}
                   </td>
-                  <td className="py-2">
+                  <td className="py-2.5 px-4">
                     {formatNumber(p.price_per_ton)} {p.currency}
                   </td>
-                  <td className="py-2">{formatNumber(p.quantity_tons, 1)}</td>
-                  <td className="py-2">{p.status}</td>
+                  <td className="py-2.5 px-4">{formatNumber(p.quantity_tons, 1)}</td>
+                  <td className="py-2.5 px-4">{p.status}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {modalOpen && (
+        <DetailModal title="Yeni İlan Ekle" onClose={() => setModalOpen(false)} maxWidth="max-w-2xl">
+          <form onSubmit={submit} className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <select
+                value={form.country}
+                onChange={(e) => setForm({ ...form, country: e.target.value })}
+                required
+                className="input"
+              >
+                <option value="">Ülke seçin</option>
+                {COUNTRIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+              <input
+                placeholder="Başlık"
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                required
+                className="input"
+              />
+              <select
+                value={form.bean_type}
+                onChange={(e) => setForm({ ...form, bean_type: e.target.value })}
+                className="input"
+              >
+                <option>Arabica</option>
+                <option>Robusta</option>
+                <option>Liberica</option>
+                <option>Excelsa</option>
+                <option>Blend</option>
+              </select>
+              <input
+                type="number"
+                placeholder="Stok (ton) — örn. 19"
+                value={form.quantity_tons}
+                onChange={(e) => setForm({ ...form, quantity_tons: e.target.value })}
+                required
+                className="input"
+              />
+            </div>
+
+            <div className="border-t border-[var(--border)] pt-3 space-y-2">
+              <p className="text-xs text-[var(--text-tertiary)] uppercase tracking-wide font-semibold">Detaylar</p>
+              <textarea
+                placeholder="Açıklama"
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                rows={2}
+                className="input w-full"
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <select
+                  value={form.harvest_year}
+                  onChange={(e) => setForm({ ...form, harvest_year: e.target.value })}
+                  className="input"
+                >
+                  <option value="">Hasat yılı seçin</option>
+                  {HARVEST_YEARS.map((y) => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={form.processing_method}
+                  onChange={(e) => setForm({ ...form, processing_method: e.target.value })}
+                  className="input"
+                >
+                  <option value="">İşlem türü seçin</option>
+                  {PROCESSING_METHODS.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  step="0.1"
+                  placeholder="Nem oranı (%)"
+                  value={form.moisture_pct}
+                  onChange={(e) => setForm({ ...form, moisture_pct: e.target.value })}
+                  className="input"
+                />
+                <input
+                  type="number"
+                  step="0.1"
+                  placeholder="Skor"
+                  value={form.score}
+                  onChange={(e) => setForm({ ...form, score: e.target.value })}
+                  className="input"
+                />
+              </div>
+              <textarea
+                placeholder="Tadım notları"
+                value={form.cupping_notes}
+                onChange={(e) => setForm({ ...form, cupping_notes: e.target.value })}
+                rows={2}
+                className="input w-full"
+              />
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={form.greenbro_supplied}
+                  onChange={(e) => setForm({ ...form, greenbro_supplied: e.target.checked })}
+                />
+                Bu parti GreenBro'ya tedarik ediliyor/uygun
+              </label>
+            </div>
+
+            <div className="border-t border-[var(--border)] pt-3 space-y-2">
+              <p className="text-xs text-[var(--text-tertiary)] uppercase tracking-wide font-semibold">
+                Fiyatlandırma
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <input
+                  type="number"
+                  step="0.0001"
+                  placeholder="Kg başına fiyat (USD, zorunlu)"
+                  value={form.price_per_kg}
+                  onChange={(e) => setForm({ ...form, price_per_kg: e.target.value })}
+                  required
+                  className="input"
+                />
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="Ton başına fiyat (boş = otomatik)"
+                  value={form.price_per_ton}
+                  onChange={(e) => setForm({ ...form, price_per_ton: e.target.value })}
+                  className="input"
+                />
+                <select
+                  value={form.container_type_id}
+                  onChange={(e) => setForm({ ...form, container_type_id: e.target.value })}
+                  className="input"
+                >
+                  <option value="">Konteyner tipi seçin (opsiyonel)</option>
+                  {containerTypes.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} ({c.capacity_kg / 1000} ton)
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="Konteyner fiyatı (boş = otomatik)"
+                  value={form.price_per_container}
+                  onChange={(e) => setForm({ ...form, price_per_container: e.target.value })}
+                  className="input"
+                />
+              </div>
+              <p className="text-xs text-[var(--text-tertiary)]">
+                Ton ve konteyner fiyatlarını boş bırakırsanız kg fiyatından otomatik hesaplanır; toplu alım
+                iskontosu uygulayacaksanız elle girebilirsiniz.
+              </p>
+            </div>
+
+            {error && <p className="text-sm text-[var(--error)]">{error}</p>}
+            <button type="submit" disabled={submitting} className="btn btn-primary">
+              {submitting ? "Ekleniyor…" : "Ekle"}
+            </button>
+          </form>
+        </DetailModal>
+      )}
+
+      {submitting && (
+        <div className="wait-overlay fixed inset-0 z-[110] flex items-center justify-center">
+          <div className="bg-[var(--surface)] rounded-[14px] shadow-2xl px-6 py-4 flex items-center gap-3">
+            <span className="spinner" />
+            <span className="text-sm font-semibold text-[var(--text-primary)]">Lütfen bekleyiniz…</span>
+          </div>
         </div>
       )}
     </div>

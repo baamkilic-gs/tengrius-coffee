@@ -6,10 +6,11 @@ interface DetailModalProps {
   title: string;
   onClose: () => void;
   children: React.ReactNode;
+  maxWidth?: string;
 }
 
-/** Liste satırındaki bir numaraya tıklayınca açılan, konsolide bilgi kartı gösteren modal. */
-export default function DetailModal({ title, onClose, children }: DetailModalProps) {
+/** Liste satırındaki bir numaraya tıklayınca (veya bir form açmak için) açılan modal kart. */
+export default function DetailModal({ title, onClose, children, maxWidth = "max-w-lg" }: DetailModalProps) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
@@ -22,7 +23,7 @@ export default function DetailModal({ title, onClose, children }: DetailModalPro
       onClick={onClose}
     >
       <div
-        className="card max-w-lg w-full max-h-[85vh] overflow-y-auto"
+        className={`card ${maxWidth} w-full max-h-[85vh] overflow-y-auto`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
