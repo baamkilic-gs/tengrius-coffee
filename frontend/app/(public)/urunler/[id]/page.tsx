@@ -6,6 +6,9 @@ import { api, getUser, getOrganization } from "../../../../lib/api";
 import { formatNumber } from "../../../../lib/format";
 import FlagIcon from "../../../components/FlagIcon";
 import { useToast } from "../../../components/Toast";
+import DetailModal from "../../../components/DetailModal";
+
+const PRICE_STEP = 0.05;
 
 interface ProductDetail {
   id: string;
@@ -53,6 +56,7 @@ export default function ProductDetailPage() {
   const [offerPrice, setOfferPrice] = useState("");
   const [offerQtyKg, setOfferQtyKg] = useState("");
   const [sendingOffer, setSendingOffer] = useState(false);
+  const [offerModalOpen, setOfferModalOpen] = useState(false);
   const [myOffers, setMyOffers] = useState<MyOffer[]>([]);
   const [justAddedId, setJustAddedId] = useState<string | null>(null);
 
@@ -79,6 +83,20 @@ export default function ProductDetailPage() {
 
   useEffect(loadMyOffers, [params.id, user?.id]);
 
+  const openOfferModal = () => {
+    setOfferPrice(product ? String(product.price_per_kg) : "");
+    setOfferQtyKg("");
+    setOfferModalOpen(true);
+  };
+
+  const adjustPrice = (delta: number) => {
+    setOfferPrice((prev) => {
+      const current = Number(prev) || 0;
+      const next = Math.max(0, Math.round((current + delta) * 100) / 100);
+      return String(next);
+    });
+  };
+
   const sendOffer = async (e: React.FormEvent) => {
     e.preventDefault();
     setSendingOffer(true);
@@ -94,6 +112,7 @@ export default function ProductDetailPage() {
     if (res.ok) {
       const created = await res.json();
       showToast("Teklifiniz gönderildi ✓");
+      setOfferModalOpen(false);
       setOfferPrice("");
       setOfferQtyKg("");
       setJustAddedId(created.id);
@@ -207,41 +226,9 @@ export default function ProductDetailPage() {
           )}
 
           {user && isPremium && !isOwnProduct && (
-            <form
-              onSubmit={sendOffer}
-              className="space-y-3 bg-[var(--surface)] border border-[var(--border)] rounded-[20px] p-5"
-            >
-              <h2 className="font-semibold">Teklif Ver</h2>
-              <div className="flex gap-3">
-                <input
-                  type="number"
-                  step="0.0001"
-                  placeholder="Teklif fiyatı (kg başına)"
-                  value={offerPrice}
-                  onChange={(e) => setOfferPrice(e.target.value)}
-                  required
-                  className="input flex-1"
-                />
-                <div className="flex-1">
-                  <input
-                    type="number"
-                    placeholder="Miktar (kg)"
-                    value={offerQtyKg}
-                    onChange={(e) => setOfferQtyKg(e.target.value)}
-                    required
-                    className="input w-full"
-                  />
-                  {offerQtyKg && Number(offerQtyKg) > 0 && (
-                    <p className="text-xs text-[var(--text-tertiary)] mt-1">
-                      ≈ {formatNumber(Number(offerQtyKg) / 1000, 3)} ton
-                    </p>
-                  )}
-                </div>
-              </div>
-              <button type="submit" disabled={sendingOffer} className="btn btn-primary">
-                {sendingOffer ? "Gönderiliyor…" : "Teklif Gönder"}
-              </button>
-            </form>
+            <button onClick={openOfferModal} className="btn btn-primary">
+              Teklif Ver
+            </button>
           )}
         </div>
 
@@ -280,6 +267,79 @@ export default function ProductDetailPage() {
           </aside>
         )}
       </div>
+
+      {offerModalOpen && (
+        <DetailModal title="Teklif Ver" onClose={() => setOfferModalOpen(false)}>
+          <form onSubmit={sendOffer} className="space-y-3">
+            <div>
+              <label className="text-xs text-[var(--text-tertiary)] uppercase tracking-wide font-semibold">
+                Teklif fiyatı (kg başına, {product.currency})
+              </label>
+              <div className="flex items-center gap-2 mt-1">
+                <button
+                  type="button"
+                  onClick={() => adjustPrice(-PRICE_STEP)}
+                  aria-label="Fiyatı azalt"
+                  className="w-9 h-9 shrink-0 rounded-full border border-[var(--border)] text-lg leading-none flex items-center justify-center hover:bg-[var(--surface-hover)] hover:border-[var(--color-gold)] transition-colors"
+                >
+                  −
+                </button>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="Teklif fiyatı"
+                  value={offerPrice}
+                  onChange={(e) => setOfferPrice(e.target.value)}
+                  required
+                  className="input flex-1 text-center"
+                />
+                <button
+                  type="button"
+                  onClick={() => adjustPrice(PRICE_STEP)}
+                  aria-label="Fiyatı artır"
+                  className="w-9 h-9 shrink-0 rounded-full border border-[var(--border)] text-lg leading-none flex items-center justify-center hover:bg-[var(--surface-hover)] hover:border-[var(--color-gold)] transition-colors"
+                >
+                  +
+                </button>
+              </div>
+              <p className="text-xs text-[var(--text-tertiary)] mt-1">
+                İlan fiyatı {formatNumber(product.price_per_kg, 4)} {product.currency}/kg olarak otomatik dolduruldu — +/- ile
+                ayarlayın ya da elle yazın.
+              </p>
+            </div>
+
+            <div>
+              <label className="text-xs text-[var(--text-tertiary)] uppercase tracking-wide font-semibold">Miktar (kg)</label>
+              <input
+                type="number"
+                placeholder="Miktar (kg)"
+                value={offerQtyKg}
+                onChange={(e) => setOfferQtyKg(e.target.value)}
+                required
+                className="input w-full mt-1"
+              />
+              {offerQtyKg && Number(offerQtyKg) > 0 && (
+                <p className="text-xs text-[var(--text-tertiary)] mt-1">
+                  ≈ {formatNumber(Number(offerQtyKg) / 1000, 3)} ton
+                </p>
+              )}
+            </div>
+
+            <button type="submit" disabled={sendingOffer} className="btn btn-primary w-full">
+              {sendingOffer ? "Gönderiliyor…" : "Teklif Gönder"}
+            </button>
+          </form>
+        </DetailModal>
+      )}
+
+      {sendingOffer && (
+        <div className="wait-overlay fixed inset-0 z-[110] flex items-center justify-center">
+          <div className="bg-[var(--surface)] rounded-[14px] shadow-2xl px-6 py-4 flex items-center gap-3">
+            <span className="spinner" />
+            <span className="text-sm font-semibold text-[var(--text-primary)]">Lütfen bekleyiniz…</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
