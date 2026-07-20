@@ -15,7 +15,7 @@ interface Rates {
 type Trend = "up" | "down" | "flat";
 
 const fmt = (n: number | null, decimals = 2) =>
-  n == null ? "—" : n.toLocaleString("tr-TR", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  n == null ? "-" : n.toLocaleString("tr-TR", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 
 function Arrow({ trend }: { trend: Trend }) {
   if (trend === "flat") return null;

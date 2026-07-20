@@ -18,8 +18,8 @@ export default function OpengraphImage() {
         }}
       >
         <svg width="150" height="150" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="20" cy="20" r="7" fill="#e0955c" />
-          <g stroke="#e0955c" strokeWidth="2.4" strokeLinecap="round">
+          <circle cx="20" cy="20" r="7" fill="#d97a4e" />
+          <g stroke="#d97a4e" strokeWidth="2.4" strokeLinecap="round">
             <line x1="20" y1="2.5" x2="20" y2="9" />
             <line x1="20" y1="31" x2="20" y2="37.5" />
             <line x1="2.5" y1="20" x2="9" y2="20" />
@@ -31,7 +31,7 @@ export default function OpengraphImage() {
           </g>
         </svg>
         <div style={{ display: "flex", alignItems: "baseline", gap: 18, marginTop: 30 }}>
-          <span style={{ fontSize: 78, fontWeight: 700, color: "#e0955c", letterSpacing: "-0.02em" }}>
+          <span style={{ fontSize: 78, fontWeight: 700, color: "#d97a4e", letterSpacing: "-0.02em" }}>
             Tengrius
           </span>
           <span style={{ fontSize: 32, color: "rgba(253,251,247,0.6)" }}>Kahve Borsası</span>

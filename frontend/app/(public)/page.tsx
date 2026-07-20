@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ArrowLeft, ArrowsClockwise } from "@phosphor-icons/react";
 import { api, getUser, getOrganization } from "../../lib/api";
 import { useFavorites } from "../../lib/useFavorites";
 import { formatNumber } from "../../lib/format";
@@ -12,7 +13,7 @@ import CoffeeBeltMap from "../components/CoffeeBeltMap";
 import { FavoriteButton } from "../components/ProductsListing";
 
 const SPECIES = [
-  { common: "Arabica", accent: "#5a3420", rgb: "90,52,32", desc: "Aromatik ve kompleks — dünya kahve üretiminin çoğunluğu.", tilt: -3 },
+  { common: "Arabica", accent: "#5a3420", rgb: "90,52,32", desc: "Aromatik ve kompleks, dünya kahve üretiminin çoğunluğunu oluşturur.", tilt: -3 },
   { common: "Robusta", accent: "#7a2d1f", rgb: "122,45,31", desc: "Yüksek kafeinli, sert ve dolgun bir profil.", tilt: 2 },
   { common: "Liberica", accent: "#3d5a3a", rgb: "61,90,58", desc: "İri çekirdekli, isli/odunsu bir tür.", tilt: -2 },
   { common: "Excelsa", accent: "#8a4a2a", rgb: "138,74,42", desc: "Ekşimsi, meyvemsi notalar taşır.", tilt: 3 },
@@ -60,7 +61,15 @@ export default function HomePage() {
   const org = getOrganization();
 
   useEffect(() => {
-    const onScroll = () => setScrollY(window.scrollY);
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(() => {
+        setScrollY(window.scrollY);
+        ticking = false;
+      });
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -98,9 +107,7 @@ export default function HomePage() {
           title="Geri"
           className="absolute top-2 left-2 p-1.5 rounded-full text-[var(--color-cream)]/70 hover:text-[var(--color-gold-light)] hover:bg-white/10 transition-colors"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
+          <ArrowLeft size={16} weight="bold" />
         </button>
         <button
           onClick={() => window.location.reload()}
@@ -108,11 +115,7 @@ export default function HomePage() {
           title="Yenile"
           className="absolute top-2 right-2 p-1.5 rounded-full text-[var(--color-cream)]/70 hover:text-[var(--color-gold-light)] hover:bg-white/10 transition-colors"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M23 4v6h-6" />
-            <path d="M1 20v-6h6" />
-            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-          </svg>
+          <ArrowsClockwise size={16} weight="bold" />
         </button>
         <div
           className="max-w-3xl mx-auto px-6 text-center space-y-2 transition-[padding] duration-200 ease-out"
@@ -123,6 +126,12 @@ export default function HomePage() {
             style={{ fontSize: `${18 - shrink * 6}px` }}
           >
             Çiğ Kahve Pazar Yeri
+          </p>
+          <h1 className="enter-fade-up text-2xl sm:text-3xl font-semibold leading-tight">
+            Çiğ kahvede satıcı ile kavurmacı burada buluşur
+          </h1>
+          <p className="enter-fade-up text-sm sm:text-base text-[var(--color-cream)]/75 max-w-xl mx-auto">
+            İlan verin, teklif alın, siparişi tamamlayın. Hepsi tek platformda.
           </p>
           {!user && (
             <div className="enter-fade-up flex flex-wrap gap-3 justify-center pt-1">
@@ -185,8 +194,8 @@ export default function HomePage() {
                       <td className="py-2.5 px-4 text-[var(--text-secondary)]">
                         {p.seller.name} {p.seller.verified && <span className="badge badge-verified">Yetkili Satıcı</span>}
                       </td>
-                      <td className="py-2.5 px-4">{p.seller.contact_name ?? "—"}</td>
-                      <td className="py-2.5 px-4">{p.seller.contact_phone ?? "—"}</td>
+                      <td className="py-2.5 px-4">{p.seller.contact_name ?? "-"}</td>
+                      <td className="py-2.5 px-4">{p.seller.contact_phone ?? "-"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -246,7 +255,7 @@ export default function HomePage() {
               <Link href="/panel/uyelik" className="link">
                 Premium üye olun
               </Link>{" "}
-              — alıcı/satıcı firma adları ve fiyat detaylarını da görün.
+              ve alıcı/satıcı firma adları ile fiyat detaylarını görün.
             </p>
           )}
           {!user && <p className="text-xs text-[var(--text-tertiary)] mb-4">Premium üyeler firma adı ve fiyat detaylarını da görebilir.</p>}

@@ -3,49 +3,17 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { House, List, Package, Handshake, ShoppingBag, Star, ShieldCheck } from "@phosphor-icons/react";
 import { getUser, getOrganization, AuthOrganization, AuthUser } from "../../lib/api";
 
 const ICONS = {
-  home: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 11.5 12 4l9 7.5" />
-      <path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9" />
-    </svg>
-  ),
-  listings: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 6h16M4 12h16M4 18h10" />
-    </svg>
-  ),
-  myProducts: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 8v8.5a1 1 0 0 1-.5.87l-8 4.5a1 1 0 0 1-1 0l-8-4.5a1 1 0 0 1-.5-.87V8" />
-      <path d="M3 8l9-5 9 5-9 5-9-5Z" />
-    </svg>
-  ),
-  offers: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 3 4 8v8l8 5 8-5V8l-8-5Z" />
-      <path d="M12 12h.01" />
-    </svg>
-  ),
-  orders: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M6 8V6a6 6 0 0 1 12 0v2" />
-      <path d="M4 8h16l-1.2 12a1.5 1.5 0 0 1-1.5 1.4H6.7A1.5 1.5 0 0 1 5.2 20L4 8Z" />
-    </svg>
-  ),
-  favorites: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 3.5l2.6 5.5 6 .7-4.4 4.1 1.2 6-5.4-3-5.4 3 1.2-6-4.4-4.1 6-.7z" />
-    </svg>
-  ),
-  admin: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2l7 3.5v5.5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V5.5L12 2Z" />
-      <path d="M9.5 12l1.8 1.8L15 10" />
-    </svg>
-  ),
+  home: <House size={18} weight="regular" />,
+  listings: <List size={18} weight="regular" />,
+  myProducts: <Package size={18} weight="regular" />,
+  offers: <Handshake size={18} weight="regular" />,
+  orders: <ShoppingBag size={18} weight="regular" />,
+  favorites: <Star size={18} weight="regular" />,
+  admin: <ShieldCheck size={18} weight="regular" />,
 };
 
 /**

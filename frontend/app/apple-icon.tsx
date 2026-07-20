@@ -17,8 +17,8 @@ export default function AppleIcon() {
         }}
       >
         <svg width="126" height="126" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="20" cy="20" r="7" fill="#e0955c" />
-          <g stroke="#e0955c" strokeWidth="2.6" strokeLinecap="round">
+          <circle cx="20" cy="20" r="7" fill="#d97a4e" />
+          <g stroke="#d97a4e" strokeWidth="2.6" strokeLinecap="round">
             <line x1="20" y1="2.5" x2="20" y2="9" />
             <line x1="20" y1="31" x2="20" y2="37.5" />
             <line x1="2.5" y1="20" x2="9" y2="20" />

@@ -24,7 +24,7 @@
 
   /* Borders */
   --border: #DED6C7;
-  --border-hover: #C8763A;
+  --border-hover: #C0562E;
 
   /* Text */
   --text: #241B14;            /* başlık, önemli metin — neredeyse-siyah kahve */
@@ -32,13 +32,13 @@
   --text-tertiary: #8A7D6C;   /* etiket, ikincil bilgi */
 
   /* Accent */
-  --accent: #C8763A;          /* kehribar/amber — CTA, link, aktif durum */
-  --accent-hover: #AD5F29;
-  --accent-light: #E8A56D;    /* rozet zemin, hafif vurgu */
+  --accent: #C0562E;          /* terracotta — CTA, link, aktif durum (kehribar/brass paletinden bilinçli kaçış) */
+  --accent-hover: #A3441F;
+  --accent-light: #D97A4E;    /* rozet zemin, hafif vurgu */
 
   /* RGB variants for rgba() */
   --bg-rgb: 247, 244, 238;
-  --accent-rgb: 200, 118, 58;
+  --accent-rgb: 192, 86, 46;
   --text-rgb: 36, 27, 20;
 
   /* Semantic */

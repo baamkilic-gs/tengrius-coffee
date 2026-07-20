@@ -85,9 +85,9 @@ export default function CoffeeBeltMap() {
     <div>
       <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="w-full h-auto rounded-xl" style={{ background: "#241B14" }}>
         {/* Yengeç (23.5°K) / Ekvator / Oğlak (23.5°G) dönenceleri — kahve kuşağının coğrafi sınırı */}
-        <path d={latLine(23.5)} stroke="#C8763A" strokeWidth="1" strokeDasharray="3 5" opacity="0.35" fill="none" />
-        <path d={latLine(0)} stroke="#C8763A" strokeWidth="1.25" strokeDasharray="3 5" opacity="0.5" fill="none" />
-        <path d={latLine(-23.5)} stroke="#C8763A" strokeWidth="1" strokeDasharray="3 5" opacity="0.35" fill="none" />
+        <path d={latLine(23.5)} stroke="#C0562E" strokeWidth="1" strokeDasharray="3 5" opacity="0.35" fill="none" />
+        <path d={latLine(0)} stroke="#C0562E" strokeWidth="1.25" strokeDasharray="3 5" opacity="0.5" fill="none" />
+        <path d={latLine(-23.5)} stroke="#C0562E" strokeWidth="1" strokeDasharray="3 5" opacity="0.35" fill="none" />
 
         {features.map((f: any) => {
           const info = COFFEE_COUNTRIES[f.properties?.name];
@@ -100,7 +100,7 @@ export default function CoffeeBeltMap() {
               strokeWidth={0.6}
               opacity={info ? 0.92 : 0.5}
             >
-              <title>{info ? `${info.label} — ${REGION_LABEL[info.region]}` : f.properties?.name}</title>
+              <title>{info ? `${info.label} (${REGION_LABEL[info.region]})` : f.properties?.name}</title>
             </path>
           );
         })}

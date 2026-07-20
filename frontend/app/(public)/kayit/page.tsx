@@ -207,7 +207,7 @@ export default function RegisterPage() {
               </div>
 
               <p className="text-xs text-[var(--text-tertiary)] pt-1">
-                Öne çıkarma tercihleri (opsiyonel) — bu seçenekleri kabul eden satıcılar ilan listesinde öne çıkarılır
+                Öne çıkarma tercihleri (opsiyonel): bu seçenekleri kabul eden satıcılar ilan listesinde öne çıkarılır
               </p>
               <label className="flex items-center gap-2 text-sm">
                 <input type="checkbox" checked={includesVat} onChange={(e) => setIncludesVat(e.target.checked)} />

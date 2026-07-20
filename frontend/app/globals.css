@@ -13,7 +13,7 @@
   --surface-alt: #efeae1;
   --surface-hover: #e5ded0;
   --border: #ded6c7;
-  --border-hover: #c8763a;
+  --border-hover: #c0562e;
   --text-primary: #241b14;
   --text-secondary: #5b4f42;
   --text-tertiary: #8a7d6c;
@@ -22,18 +22,18 @@
   --error: #b5482f;
   --error-bg: #f5e6e1;
   --accent-strong-rgb: 36, 27, 20;
-  --accent-rgb: 200, 118, 58;
+  --accent-rgb: 192, 86, 46;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  /* Tengrius Coffee — sicak notr zemin + tek kehribar vurgu rengi */
+  /* Tengrius Coffee — sicak notr zemin + tek terracotta vurgu rengi */
   --color-coffee: #241b14;
   --color-coffee-dark: #241b14;
   --color-cream: #fdfbf7;
-  --color-gold: #c8763a;
-  --color-gold-light: #e0955c;
+  --color-gold: #c0562e;
+  --color-gold-light: #d97a4e;
   --font-sans: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   --font-heading: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;

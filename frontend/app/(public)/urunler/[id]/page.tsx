@@ -220,7 +220,7 @@ export default function ProductDetailPage() {
 
           {user && isOwnProduct && (
             <p className="text-sm text-[var(--text-tertiary)]">
-              Bu ürün size ait olduğu için teklif verme seçeneği gösterilmiyor — başka bir organizasyonun
+              Bu ürün size ait olduğu için teklif verme seçeneği gösterilmiyor. Başka bir organizasyonun
               ürününü görüntülediğinizde bu bölümde "Teklif Ver" formu çıkar.
             </p>
           )}
@@ -303,8 +303,8 @@ export default function ProductDetailPage() {
                 </button>
               </div>
               <p className="text-xs text-[var(--text-tertiary)] mt-1">
-                İlan fiyatı {formatNumber(product.price_per_kg, 4)} {product.currency}/kg olarak otomatik dolduruldu — +/- ile
-                ayarlayın ya da elle yazın.
+                İlan fiyatı {formatNumber(product.price_per_kg, 4)} {product.currency}/kg olarak otomatik dolduruldu.
+                +/- ile ayarlayın ya da elle yazın.
               </p>
             </div>
 

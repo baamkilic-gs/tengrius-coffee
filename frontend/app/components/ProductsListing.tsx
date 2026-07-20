@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { Star, SquaresFour, List } from "@phosphor-icons/react";
 import { formatNumber } from "../../lib/format";
 import FlagIcon from "./FlagIcon";
 import ColumnFilterHeader from "./ColumnFilterHeader";
@@ -58,16 +59,9 @@ const columnValue = (p: Product, key: string): string => {
   }
 };
 
-export const StarIcon = ({ filled }: { filled: boolean }) =>
-  filled ? (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1">
-      <path d="M12 3.5l2.6 5.5 6 .7-4.4 4.1 1.2 6-5.4-3-5.4 3 1.2-6-4.4-4.1 6-.7z" />
-    </svg>
-  ) : (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 3.5l2.6 5.5 6 .7-4.4 4.1 1.2 6-5.4-3-5.4 3 1.2-6-4.4-4.1 6-.7z" />
-    </svg>
-  );
+export const StarIcon = ({ filled }: { filled: boolean }) => (
+  <Star size={16} weight={filled ? "fill" : "regular"} />
+);
 
 export function FavoriteButton({
   productId,
@@ -173,12 +167,7 @@ export function ProductsListingView({
             view === "grid" ? "bg-[var(--color-coffee)] text-[var(--color-cream)]" : "text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]"
           }`}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3.5" y="3.5" width="7" height="7" rx="1" />
-            <rect x="13.5" y="3.5" width="7" height="7" rx="1" />
-            <rect x="3.5" y="13.5" width="7" height="7" rx="1" />
-            <rect x="13.5" y="13.5" width="7" height="7" rx="1" />
-          </svg>
+          <SquaresFour size={16} weight="regular" />
         </button>
         <button
           onClick={() => setView("list")}
@@ -188,9 +177,7 @@ export function ProductsListingView({
             view === "list" ? "bg-[var(--color-coffee)] text-[var(--color-cream)]" : "text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]"
           }`}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
+          <List size={16} weight="regular" />
         </button>
       </div>
 
@@ -281,8 +268,8 @@ export function ProductsListingView({
                       <td className="py-2.5 px-4 text-[var(--text-secondary)]">
                         {p.seller.name} {p.seller.verified && <span className="badge badge-verified">Yetkili Satıcı</span>}
                       </td>
-                      <td className="py-2.5 px-4 hidden md:table-cell">{p.seller.contact_name ?? "—"}</td>
-                      <td className="py-2.5 px-4 hidden md:table-cell">{p.seller.contact_phone ?? "—"}</td>
+                      <td className="py-2.5 px-4 hidden md:table-cell">{p.seller.contact_name ?? "-"}</td>
+                      <td className="py-2.5 px-4 hidden md:table-cell">{p.seller.contact_phone ?? "-"}</td>
                     </tr>
                   ))
                 )}
