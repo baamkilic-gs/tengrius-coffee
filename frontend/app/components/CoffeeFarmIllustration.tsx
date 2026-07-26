@@ -2,8 +2,22 @@
  * Elle çizilmiş düz-vektör ("corporate memphis") kahve tarlası sahnesi — hero arka planı.
  * AI görsel üretimi bu oturumda kredisiz kaldığı için SVG olarak kodlandı; tüm renkler
  * marka paletiyle (terracotta/koyu kahve/krem/yeşil) birebir eşleşiyor.
+ *
+ * v2: insan figürleri kaldırıldı (en zayıf halka), güneş küçültülüp köşeye çekildi,
+ * çalılar üst üste daire kümeleriyle daha "çalı" gibi, sol-alt (kart bölgesi) sade bırakıldı.
  */
 export default function CoffeeFarmIllustration({ className = "" }: { className?: string }) {
+  const bush = (x: number, y: number, scale: number, leaf: string, leafDark: string) => (
+    <g key={`${x}-${y}`} transform={`translate(${x},${y}) scale(${scale})`}>
+      <ellipse cx="-16" cy="4" rx="20" ry="16" fill={leafDark} />
+      <ellipse cx="16" cy="4" rx="20" ry="16" fill={leafDark} />
+      <ellipse cx="0" cy="-10" rx="24" ry="19" fill={leaf} />
+      <circle cx="-9" cy="-10" r="4.5" fill="#C0562E" />
+      <circle cx="8" cy="-4" r="4.5" fill="#7a2418" />
+      <circle cx="-2" cy="4" r="4.5" fill="#C0562E" />
+    </g>
+  );
+
   return (
     <svg
       viewBox="0 0 1200 600"
@@ -12,120 +26,62 @@ export default function CoffeeFarmIllustration({ className = "" }: { className?:
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
     >
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#F7F4EE" />
+          <stop offset="100%" stopColor="#F1E9DC" />
+        </linearGradient>
+      </defs>
+
       {/* Gökyüzü */}
-      <rect x="0" y="0" width="1200" height="600" fill="#F7F4EE" />
+      <rect x="0" y="0" width="1200" height="600" fill="url(#sky)" />
 
-      {/* Güneş + ışınlar (Tengrius güneş markasıyla aynı motif) */}
-      <g transform="translate(940,120)">
-        <g stroke="#D97A4E" strokeWidth="7" strokeLinecap="round">
-          <line x1="0" y1="-92" x2="0" y2="-70" />
-          <line x1="0" y1="70" x2="0" y2="92" />
-          <line x1="-92" y1="0" x2="-70" y2="0" />
-          <line x1="70" y1="0" x2="92" y2="0" />
-          <line x1="-65" y1="-65" x2="-49" y2="-49" />
-          <line x1="49" y1="49" x2="65" y2="65" />
-          <line x1="-65" y1="65" x2="-49" y2="49" />
-          <line x1="49" y1="-49" x2="65" y2="-65" />
+      {/* Güneş + ışınlar — köşeye çekilmiş, küçük ve sakin */}
+      <g transform="translate(1080,86) scale(0.62)">
+        <g stroke="#D97A4E" strokeWidth="7" strokeLinecap="round" opacity="0.85">
+          <line x1="0" y1="-88" x2="0" y2="-66" />
+          <line x1="-88" y1="0" x2="-66" y2="0" />
+          <line x1="-62" y1="-62" x2="-47" y2="-47" />
+          <line x1="-62" y1="62" x2="-47" y2="47" />
         </g>
-        <circle r="52" fill="#C0562E" />
+        <circle r="48" fill="#D97A4E" />
       </g>
 
-      {/* Bulutlar */}
-      <g fill="#FFFFFF" stroke="#DED6C7" strokeWidth="2">
-        <g transform="translate(180,90)">
-          <ellipse cx="0" cy="10" rx="46" ry="22" />
-          <ellipse cx="34" cy="0" rx="34" ry="26" />
-          <ellipse cx="-32" cy="4" rx="30" ry="20" />
+      {/* Bulutlar — kenarlarda, sakin */}
+      <g fill="#FFFFFF" opacity="0.9">
+        <g transform="translate(150,110)">
+          <ellipse cx="0" cy="8" rx="42" ry="18" />
+          <ellipse cx="30" cy="-2" rx="28" ry="22" />
         </g>
-        <g transform="translate(560,60)">
-          <ellipse cx="0" cy="8" rx="34" ry="16" />
-          <ellipse cx="24" cy="0" rx="24" ry="18" />
-        </g>
-        <g transform="translate(1080,220)">
-          <ellipse cx="0" cy="8" rx="30" ry="15" />
-          <ellipse cx="22" cy="0" rx="22" ry="16" />
+        <g transform="translate(770,70)">
+          <ellipse cx="0" cy="6" rx="30" ry="14" />
+          <ellipse cx="20" cy="-2" rx="20" ry="16" />
         </g>
       </g>
 
-      {/* Serpiştirilmiş pırıltı/yıldız aksanları */}
-      <g fill="#C0562E">
-        <path d="M110 200 l6 16 16 6 -16 6 -6 16 -6 -16 -16 -6 16 -6z" opacity="0.7" />
-        <path d="M1020 340 l5 13 13 5 -13 5 -5 13 -5 -13 -13 -5 13 -5z" opacity="0.55" />
-        <path d="M300 140 l4 10 10 4 -10 4 -4 10 -4 -10 -10 -4 10 -4z" opacity="0.6" />
-        <path d="M760 170 l4 10 10 4 -10 4 -4 10 -4 -10 -10 -4 10 -4z" opacity="0.5" />
+      {/* Pırıltı aksanları — sade, güneşin etrafında */}
+      <g fill="#C0562E" opacity="0.55">
+        <path d="M960 220 l4 11 11 4 -11 4 -4 11 -4 -11 -11 -4 11 -4z" />
+        <path d="M270 220 l4 10 10 4 -10 4 -4 10 -4 -10 -10 -4 10 -4z" />
       </g>
 
-      {/* Arka tepeler (koyu yeşil, uzak) */}
-      <path d="M0 380 Q 200 320 420 370 T 820 360 T 1200 390 V600 H0 Z" fill="#3d6b4f" opacity="0.55" />
+      {/* Arka tepe (uzak, soluk) */}
+      <path d="M0 400 Q 220 350 460 392 Q 760 434 1000 386 Q 1120 364 1200 388 V600 H0 Z" fill="#4A7A3D" opacity="0.35" />
 
-      {/* Orta tepeler */}
-      <path d="M0 430 Q 180 370 380 420 Q 620 470 860 410 Q 1040 375 1200 420 V600 H0 Z" fill="#4A7A3D" />
+      {/* Orta tepe */}
+      <path d="M0 450 Q 200 404 440 440 Q 720 480 960 428 Q 1080 404 1200 430 V600 H0 Z" fill="#4A7A3D" opacity="0.65" />
 
-      {/* Kahve fideleri (orta tepe sırası) */}
+      {/* Orta sıradaki küçük çalılar (sol-alt kart bölgesi bilerek boş bırakıldı) */}
+      <g opacity="0.9">
+        {[560, 660, 760, 860, 960, 1060].map((x, i) => bush(x, 466 + (i % 2) * 10, 0.62, "#5b8a4d", "#3d6b4f"))}
+      </g>
+
+      {/* Ön tepe (en yakın) */}
+      <path d="M0 486 Q 260 448 540 478 Q 800 508 1020 470 Q 1130 452 1200 470 V600 H0 Z" fill="#4A7A3D" />
+
+      {/* Ön sıradaki büyük çalılar — yoğunluk sağda/ortada, kartın oturacağı sol-alt sade */}
       <g>
-        {[120, 210, 300, 470, 560, 650, 900, 990, 1080].map((x, i) => {
-          const y = 448 + (i % 3) * 8;
-          return (
-            <g key={`mid-${x}`} transform={`translate(${x},${y})`}>
-              <ellipse cx="0" cy="0" rx="26" ry="20" fill="#3d6b4f" />
-              <circle cx="-8" cy="-6" r="4" fill="#C0562E" />
-              <circle cx="7" cy="-2" r="4" fill="#8a2d1f" />
-              <circle cx="-2" cy="8" r="4" fill="#C0562E" />
-            </g>
-          );
-        })}
-      </g>
-
-      {/* Ön tepe (en yakın, açık toprak/yeşil) */}
-      <path d="M0 480 Q 240 430 500 470 Q 760 510 1000 465 Q 1120 445 1200 465 V600 H0 Z" fill="#5b7a4a" />
-
-      {/* Ön sıradaki büyük kahve fideleri */}
-      <g>
-        {[80, 200, 340, 730, 880, 1010, 1130].map((x, i) => {
-          const y = 505 + (i % 2) * 10;
-          return (
-            <g key={`front-${x}`} transform={`translate(${x},${y})`}>
-              <ellipse cx="0" cy="0" rx="38" ry="30" fill="#4A7A3D" />
-              <ellipse cx="0" cy="-6" rx="30" ry="22" fill="#5b8a4d" />
-              <circle cx="-12" cy="-8" r="6" fill="#C0562E" />
-              <circle cx="10" cy="-4" r="6" fill="#8a2d1f" />
-              <circle cx="-4" cy="10" r="6" fill="#C0562E" />
-              <circle cx="14" cy="12" r="6" fill="#8a2d1f" />
-            </g>
-          );
-        })}
-      </g>
-
-      {/* Çiftçi figürü 1 — çekirdek topluyor */}
-      <g transform="translate(470,470)">
-        <ellipse cx="0" cy="86" rx="22" ry="6" fill="#241B14" opacity="0.12" />
-        <rect x="-14" y="20" width="28" height="46" rx="10" fill="#C0562E" />
-        <circle cx="0" cy="6" r="16" fill="#8A7D6C" />
-        <rect x="-16" y="14" width="32" height="12" rx="6" fill="#241B14" />
-        <rect x="-9" y="60" width="8" height="26" rx="4" fill="#241B14" />
-        <rect x="4" y="60" width="8" height="26" rx="4" fill="#241B14" />
-        <path d="M12 34 Q34 30 34 52" stroke="#8A7D6C" strokeWidth="8" strokeLinecap="round" fill="none" />
-        <g transform="translate(40,54)">
-          <path d="M-14 0 Q0 -10 14 0 L11 18 Q0 24 -11 18 Z" fill="#D97A4E" stroke="#241B14" strokeWidth="2" />
-          <circle cx="-4" cy="8" r="3" fill="#8a2d1f" />
-          <circle cx="5" cy="6" r="3" fill="#C0562E" />
-          <circle cx="0" cy="14" r="3" fill="#8a2d1f" />
-        </g>
-      </g>
-
-      {/* Çiftçi figürü 2 — sepetle yürüyor */}
-      <g transform="translate(770,480)">
-        <ellipse cx="0" cy="80" rx="20" ry="6" fill="#241B14" opacity="0.12" />
-        <rect x="-13" y="16" width="26" height="42" rx="10" fill="#3d6b4f" />
-        <circle cx="0" cy="2" r="15" fill="#8A7D6C" />
-        <path d="M-15 -2 Q0 -20 15 -2 Q15 6 0 6 Q-15 6 -15 -2 Z" fill="#241B14" />
-        <rect x="-9" y="54" width="8" height="24" rx="4" fill="#241B14" />
-        <rect x="3" y="54" width="8" height="24" rx="4" fill="#241B14" />
-        <g transform="translate(-30,44)">
-          <path d="M-13 0 Q0 -9 13 0 L10 16 Q0 21 -10 16 Z" fill="#D97A4E" stroke="#241B14" strokeWidth="2" />
-          <circle cx="-3" cy="7" r="2.5" fill="#8a2d1f" />
-          <circle cx="4" cy="5" r="2.5" fill="#C0562E" />
-        </g>
+        {[430, 540, 650, 760, 880, 1000, 1110].map((x, i) => bush(x, 522 + (i % 2) * 12, 0.95, "#6b9a58", "#4A7A3D"))}
       </g>
     </svg>
   );
