@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowsClockwise } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowsClockwise, ArrowRight } from "@phosphor-icons/react";
 import { api, getUser, getOrganization } from "../../lib/api";
 import { useFavorites } from "../../lib/useFavorites";
 import { formatNumber } from "../../lib/format";
 import FlagIcon from "../components/FlagIcon";
 import Reveal from "../components/Reveal";
 import CoffeeBeltMap from "../components/CoffeeBeltMap";
+import CoffeeFarmIllustration from "../components/CoffeeFarmIllustration";
 import { FavoriteButton } from "../components/ProductsListing";
 
 const SPECIES = [
@@ -56,27 +57,8 @@ export default function HomePage() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [completedSales, setCompletedSales] = useState<CompletedSale[]>([]);
   const [verifiedSellers, setVerifiedSellers] = useState<VerifiedSeller[]>([]);
-  const [scrollY, setScrollY] = useState(0);
   const user = getUser();
   const org = getOrganization();
-
-  useEffect(() => {
-    let ticking = false;
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      window.requestAnimationFrame(() => {
-        setScrollY(window.scrollY);
-        ticking = false;
-      });
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  // 0 = sayfa en üstte (büyük hero), 1 = 240px+ scroll edilmiş (daralmış hero)
-  const shrink = Math.min(scrollY / 240, 1);
   const { isFavorite, toggleFavorite } = useFavorites();
   const router = useRouter();
 
@@ -100,12 +82,14 @@ export default function HomePage() {
   return (
     <div>
       {/* Hero — açılışta hafif büyük, aşağı scroll edildikçe daralır */}
-      <section className="hero-gradient text-[var(--color-cream)] overflow-hidden flex items-center relative">
+      <section className="relative overflow-hidden min-h-[600px] sm:min-h-[680px] flex flex-col">
+        <CoffeeFarmIllustration className="absolute inset-0 w-full h-full" />
+
         <button
           onClick={() => router.back()}
           aria-label="Geri"
           title="Geri"
-          className="absolute top-2 left-2 p-1.5 rounded-full text-[var(--color-cream)]/70 hover:text-[var(--color-gold-light)] hover:bg-white/10 transition-colors"
+          className="absolute z-10 top-3 left-3 p-1.5 rounded-full text-[var(--color-coffee)]/60 hover:bg-black/5 hover:text-[var(--color-coffee)] transition-colors"
         >
           <ArrowLeft size={16} weight="bold" />
         </button>
@@ -113,36 +97,51 @@ export default function HomePage() {
           onClick={() => window.location.reload()}
           aria-label="Yenile"
           title="Yenile"
-          className="absolute top-2 right-2 p-1.5 rounded-full text-[var(--color-cream)]/70 hover:text-[var(--color-gold-light)] hover:bg-white/10 transition-colors"
+          className="absolute z-10 top-3 right-3 p-1.5 rounded-full text-[var(--color-coffee)]/60 hover:bg-black/5 hover:text-[var(--color-coffee)] transition-colors"
         >
           <ArrowsClockwise size={16} weight="bold" />
         </button>
-        <div
-          className="max-w-3xl mx-auto px-6 text-center space-y-2 transition-[padding] duration-200 ease-out"
-          style={{ paddingTop: 56 - shrink * 40, paddingBottom: 56 - shrink * 40 }}
-        >
-          <p
-            className="enter-fade-up uppercase tracking-[0.2em] text-[var(--color-gold-light)] font-semibold transition-[font-size] duration-200 ease-out"
-            style={{ fontSize: `${18 - shrink * 6}px` }}
-          >
+
+        <div className="relative z-10 max-w-3xl mx-auto px-6 pt-14 sm:pt-20 text-center space-y-3">
+          <p className="enter-fade-up uppercase tracking-[0.2em] text-sm text-[var(--color-gold)] font-semibold">
             Çiğ Kahve Pazar Yeri
           </p>
-          <h1 className="enter-fade-up text-2xl sm:text-3xl font-semibold leading-tight">
+          <h1 className="enter-fade-up text-3xl sm:text-5xl font-semibold leading-tight text-[var(--color-coffee)]">
             Çiğ kahvede satıcı ile kavurmacı burada buluşur
           </h1>
-          <p className="enter-fade-up text-sm sm:text-base text-[var(--color-cream)]/75 max-w-xl mx-auto">
+          <p className="enter-fade-up text-sm sm:text-base text-[var(--text-secondary)] max-w-xl mx-auto">
             İlan verin, teklif alın, siparişi tamamlayın. Hepsi tek platformda.
           </p>
-          {!user && (
-            <div className="enter-fade-up flex flex-wrap gap-3 justify-center pt-1">
-              <Link href="/urunler" className="btn btn-primary">
-                Ürünlere Göz At
+        </div>
+
+        <div className="relative z-10 mt-auto mb-10 sm:mb-14 px-6 sm:px-10">
+          <div className="enter-fade-up card !p-2 max-w-xs w-full bg-[var(--surface)]/95 backdrop-blur-sm">
+            {(user
+              ? [
+                  { label: "İlanlara Göz At", href: "/urunler" },
+                  { label: "Panelim", href: "/panel" },
+                  { label: "Favori İlanlarım", href: "/panel/favoriler" },
+                  { label: "Kahve Kuşağını Keşfet", href: "#kahve-kusagi" },
+                ]
+              : [
+                  { label: "İlanlara Göz At", href: "/urunler" },
+                  { label: "Ücretsiz Kayıt Ol", href: "/kayit" },
+                  { label: "Giriş Yap", href: "/giris" },
+                  { label: "Kahve Kuşağını Keşfet", href: "#kahve-kusagi" },
+                ]
+            ).map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="flex items-center justify-between gap-3 px-3 py-3 border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface-alt)] transition-colors rounded-lg"
+              >
+                <span className="font-medium text-[var(--color-coffee)]">{item.label}</span>
+                <span className="w-7 h-7 shrink-0 rounded-full border border-[var(--border)] flex items-center justify-center text-[var(--color-gold)]">
+                  <ArrowRight size={14} weight="bold" />
+                </span>
               </Link>
-              <Link href="/kayit" className="btn btn-secondary">
-                Ücretsiz Kayıt Ol
-              </Link>
-            </div>
-          )}
+            ))}
+          </div>
         </div>
       </section>
 
@@ -316,7 +315,9 @@ export default function HomePage() {
         </Reveal>
 
         <Reveal>
-          <h2 className="text-xl font-semibold mb-2 text-[var(--color-coffee)]">Kahve Kuşağı</h2>
+          <h2 id="kahve-kusagi" className="text-xl font-semibold mb-2 text-[var(--color-coffee)] scroll-mt-28">
+            Kahve Kuşağı
+          </h2>
           <p className="text-sm text-[var(--text-tertiary)] mb-5">
             Çiğ kahve, ekvator çevresindeki "Kahve Kuşağı" boyunca Amerika, Afrika ve Asya'da yetişir
           </p>
