@@ -373,6 +373,20 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
 
+/* Anasayfa hero'su — mouse hero'nun üzerine gelince Tengrius güneşinin ışınları döner */
+.hero-scene .sun-rays {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.hero-scene:hover .sun-rays {
+  animation: sun-rays-spin 4s linear infinite;
+}
+@keyframes sun-rays-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* DESIGN.md §7 — reduced motion fallback */
 @media (prefers-reduced-motion: reduce) {
   *,

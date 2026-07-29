@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowsClockwise, ArrowRight } from "@phosphor-icons/react";
 import { api, getUser, getOrganization } from "../../lib/api";
@@ -10,7 +11,7 @@ import { formatNumber } from "../../lib/format";
 import FlagIcon from "../components/FlagIcon";
 import Reveal from "../components/Reveal";
 import CoffeeBeltMap from "../components/CoffeeBeltMap";
-import CoffeeFarmIllustration from "../components/CoffeeFarmIllustration";
+import TengriusSunOverlay from "../components/TengriusSunOverlay";
 import { FavoriteButton } from "../components/ProductsListing";
 
 const SPECIES = [
@@ -82,39 +83,49 @@ export default function HomePage() {
   return (
     <div>
       {/* Hero — açılışta hafif büyük, aşağı scroll edildikçe daralır */}
-      <section className="relative overflow-hidden min-h-[600px] sm:min-h-[680px] flex flex-col">
-        <CoffeeFarmIllustration className="absolute inset-0 w-full h-full" />
+      <section className="hero-scene relative overflow-hidden">
+        <div className="relative h-[420px] sm:h-[600px]">
+          <Image
+            src="/coffee-hero.png"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-[center_30%]"
+          />
+          <TengriusSunOverlay className="absolute z-10 top-2 left-2 w-10 h-10 sm:w-24 sm:h-24" />
 
-        <button
-          onClick={() => router.back()}
-          aria-label="Geri"
-          title="Geri"
-          className="absolute z-10 top-3 left-3 p-1.5 rounded-full text-[var(--color-coffee)]/60 hover:bg-black/5 hover:text-[var(--color-coffee)] transition-colors"
-        >
-          <ArrowLeft size={16} weight="bold" />
-        </button>
-        <button
-          onClick={() => window.location.reload()}
-          aria-label="Yenile"
-          title="Yenile"
-          className="absolute z-10 top-3 right-3 p-1.5 rounded-full text-[var(--color-coffee)]/60 hover:bg-black/5 hover:text-[var(--color-coffee)] transition-colors"
-        >
-          <ArrowsClockwise size={16} weight="bold" />
-        </button>
+          <button
+            onClick={() => router.back()}
+            aria-label="Geri"
+            title="Geri"
+            className="absolute z-10 top-3 left-3 p-1.5 rounded-full text-[var(--color-coffee)]/60 hover:bg-black/5 hover:text-[var(--color-coffee)] transition-colors"
+          >
+            <ArrowLeft size={16} weight="bold" />
+          </button>
+          <button
+            onClick={() => window.location.reload()}
+            aria-label="Yenile"
+            title="Yenile"
+            className="absolute z-10 top-3 right-3 p-1.5 rounded-full text-[var(--color-coffee)]/60 hover:bg-black/5 hover:text-[var(--color-coffee)] transition-colors"
+          >
+            <ArrowsClockwise size={16} weight="bold" />
+          </button>
 
-        <div className="relative z-10 max-w-3xl mx-auto px-6 pt-14 sm:pt-20 text-center space-y-3">
-          <p className="enter-fade-up uppercase tracking-[0.2em] text-sm text-[var(--color-gold)] font-semibold">
-            Çiğ Kahve Pazar Yeri
-          </p>
-          <h1 className="enter-fade-up text-3xl sm:text-5xl font-semibold leading-tight text-[var(--color-coffee)]">
-            Çiğ kahvede satıcı ile kavurmacı burada buluşur
-          </h1>
-          <p className="enter-fade-up text-sm sm:text-base text-[var(--text-secondary)] max-w-xl mx-auto">
-            İlan verin, teklif alın, siparişi tamamlayın. Hepsi tek platformda.
-          </p>
+          <div className="relative z-10 max-w-3xl mx-auto px-6 pt-10 sm:pt-16 text-center space-y-3">
+            <p className="enter-fade-up uppercase tracking-[0.2em] text-sm text-[var(--color-gold)] font-semibold">
+              Çiğ Kahve Pazar Yeri
+            </p>
+            <h1 className="enter-fade-up text-3xl sm:text-5xl font-semibold leading-tight text-[var(--color-coffee)]">
+              Çiğ kahvede satıcı ile kavurmacı burada buluşur
+            </h1>
+            <p className="enter-fade-up text-sm sm:text-base text-[var(--text-secondary)] max-w-xl mx-auto">
+              İlan verin, teklif alın, siparişi tamamlayın. Hepsi tek platformda.
+            </p>
+          </div>
         </div>
 
-        <div className="relative z-10 mt-auto mb-10 sm:mb-14 px-6 sm:px-10">
+        <div className="relative z-10 -mt-16 sm:-mt-20 pb-10 sm:pb-14 px-6 sm:px-10">
           <div className="enter-fade-up card !p-2 max-w-xs w-full bg-[var(--surface)]/95 backdrop-blur-sm">
             {(user
               ? [
