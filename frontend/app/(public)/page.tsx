@@ -83,7 +83,7 @@ export default function HomePage() {
   return (
     <div>
       {/* Hero — açılışta hafif büyük, aşağı scroll edildikçe daralır */}
-      <section className="hero-scene relative overflow-hidden">
+      <section className="hero-scene relative overflow-hidden pb-8 sm:pb-10">
         <div className="relative h-[420px] sm:h-[600px]">
           <Image
             src="/coffee-hero.png"
@@ -91,9 +91,9 @@ export default function HomePage() {
             fill
             priority
             sizes="100vw"
-            className="object-cover object-[center_30%]"
+            className="object-cover object-left-top"
           />
-          <TengriusSunOverlay className="absolute z-10 top-2 left-2 w-10 h-10 sm:w-24 sm:h-24" />
+          <TengriusSunOverlay className="absolute z-10 top-2 right-3 w-16 h-16 sm:w-32 sm:h-32" />
 
           <button
             onClick={() => router.back()}
@@ -123,10 +123,13 @@ export default function HomePage() {
               İlan verin, teklif alın, siparişi tamamlayın. Hepsi tek platformda.
             </p>
           </div>
+
         </div>
 
-        <div className="relative z-10 -mt-16 sm:-mt-20 pb-10 sm:pb-14 px-6 sm:px-10">
-          <div className="enter-fade-up card !p-2 max-w-xs w-full bg-[var(--surface)]/95 backdrop-blur-sm">
+        {/* Mobilde illustrasyonun altinda normal akista; masaustunde fotografa gomulu
+            beyaz kutunun tam uzerine (sm:absolute + olculmus piksel konumu) oturur */}
+        <div className="relative z-10 -mt-16 px-6 sm:absolute sm:z-10 sm:mt-0 sm:px-0 sm:top-[286px] sm:left-[175px] sm:w-[390px]">
+          <div className="enter-fade-up card !p-2 w-full bg-[var(--surface)]/95 backdrop-blur-sm">
             {(user
               ? [
                   { label: "İlanlara Göz At", href: "/urunler" },
