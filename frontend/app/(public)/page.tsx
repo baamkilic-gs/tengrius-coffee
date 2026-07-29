@@ -91,7 +91,8 @@ export default function HomePage() {
             fill
             priority
             sizes="100vw"
-            className="object-cover object-left-top"
+            className="object-cover"
+            style={{ objectPosition: "65% top" }}
           />
           <TengriusSunOverlay className="absolute z-10 top-2 right-3 w-16 h-16 sm:w-32 sm:h-32" />
 
@@ -126,9 +127,8 @@ export default function HomePage() {
 
         </div>
 
-        {/* Mobilde illustrasyonun altinda normal akista; masaustunde fotografa gomulu
-            beyaz kutunun tam uzerine (sm:absolute + olculmus piksel konumu) oturur */}
-        <div className="relative z-10 -mt-16 px-6 sm:absolute sm:z-10 sm:mt-0 sm:px-0 sm:top-[286px] sm:left-[175px] sm:w-[390px]">
+        {/* Kart, illustrasyonun altinda normal akista; -mt ile fotografin alt kenarina hafifce biner */}
+        <div className="relative z-10 -mt-16 sm:-mt-20 px-6 sm:px-0 sm:max-w-md sm:mx-auto">
           <div className="enter-fade-up card !p-2 w-full bg-[var(--surface)]/95 backdrop-blur-sm">
             {(user
               ? [
