@@ -57,10 +57,35 @@ export default function HomePage() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [completedSales, setCompletedSales] = useState<CompletedSale[]>([]);
   const [verifiedSellers, setVerifiedSellers] = useState<VerifiedSeller[]>([]);
+  const [stickyTop, setStickyTop] = useState(0);
   const user = getUser();
   const org = getOrganization();
   const { isFavorite, toggleFavorite } = useFavorites();
   const router = useRouter();
+
+  // Hızlı erişim şeridi, scroll'da site header'ının (Nav + RateTicker) hemen
+  // altına yapışık kalsın diye header'ın gerçek yüksekliğini ölçüyoruz —
+  // sabit bir px değeri kullanmak header içeriği değiştikçe (ör. RateTicker
+  // veriyle birlikte yükseklik kazanınca) yanlış konumlanmaya yol açardı.
+  useEffect(() => {
+    const header = document.getElementById("site-header");
+    if (!header) return;
+    const update = () => setStickyTop(header.offsetHeight);
+    update();
+    // ResizeObserver tek başına yeterli olmuyor: RateTicker verisi async geldiği
+    // için header yüksekliği mount'tan biraz sonra değişiyor — MutationObserver
+    // ve resize dinleyicisiyle birlikte kullanılıyor ki bu değişiklik kesin yakalansın.
+    const resizeObserver = new ResizeObserver(update);
+    resizeObserver.observe(header);
+    const mutationObserver = new MutationObserver(update);
+    mutationObserver.observe(header, { childList: true, subtree: true });
+    window.addEventListener("resize", update);
+    return () => {
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, []);
 
   useEffect(() => {
     api("/products")
@@ -81,39 +106,10 @@ export default function HomePage() {
 
   return (
     <div>
-      {/* Hero — fotoğraf hiçbir kenardan kırpılmadan tam gösterilir; metin ve
-          hızlı erişim şeridi fotoğrafın dışında, üstünde/altında yer alır */}
+      {/* Hero — fotoğraf hiçbir kenardan kırpılmadan tam gösterilir; başlık ve
+          geri/yenile ikonları fotoğrafın üzerine, gökyüzü boşluğuna gömülür */}
       <section className="pb-12 sm:pb-16">
-        <div className="relative max-w-2xl mx-auto px-6 pt-8 sm:pt-12 pb-6 sm:pb-8 text-center space-y-3">
-          <button
-            onClick={() => router.back()}
-            aria-label="Geri"
-            title="Geri"
-            className="absolute z-10 top-2 left-2 p-1.5 rounded-full text-[var(--color-coffee)]/60 hover:bg-[var(--surface-alt)] hover:text-[var(--color-coffee)] transition-colors"
-          >
-            <ArrowLeft size={16} weight="bold" />
-          </button>
-          <button
-            onClick={() => window.location.reload()}
-            aria-label="Yenile"
-            title="Yenile"
-            className="absolute z-10 top-2 right-2 p-1.5 rounded-full text-[var(--color-coffee)]/60 hover:bg-[var(--surface-alt)] hover:text-[var(--color-coffee)] transition-colors"
-          >
-            <ArrowsClockwise size={16} weight="bold" />
-          </button>
-
-          <p className="enter-fade-up uppercase tracking-[0.2em] text-sm text-[var(--color-gold)] font-semibold">
-            Çiğ Kahve Pazar Yeri
-          </p>
-          <h1 className="enter-fade-up text-3xl sm:text-5xl font-semibold leading-tight text-[var(--color-coffee)]">
-            Çiğ kahvede satıcı ile kavurmacı burada buluşur
-          </h1>
-          <p className="enter-fade-up text-sm sm:text-base text-[var(--text-secondary)] max-w-xl mx-auto">
-            İlan verin, teklif alın, siparişi tamamlayın. Hepsi tek platformda.
-          </p>
-        </div>
-
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6">
           <div className="enter-fade-up relative w-full overflow-hidden rounded-2xl" style={{ aspectRatio: "1774 / 887" }}>
             <Image
               src="/coffee-hero.png"
@@ -123,38 +119,72 @@ export default function HomePage() {
               sizes="(min-width: 1024px) 1152px, 100vw"
               className="object-contain"
             />
+
+            <button
+              onClick={() => router.back()}
+              aria-label="Geri"
+              title="Geri"
+              className="absolute z-10 top-2 left-2 sm:top-4 sm:left-4 p-1.5 rounded-full text-[var(--color-coffee)]/60 hover:bg-black/5 hover:text-[var(--color-coffee)] transition-colors"
+            >
+              <ArrowLeft size={16} weight="bold" />
+            </button>
+            <button
+              onClick={() => window.location.reload()}
+              aria-label="Yenile"
+              title="Yenile"
+              className="absolute z-10 top-2 right-2 sm:top-4 sm:right-4 p-1.5 rounded-full text-[var(--color-coffee)]/60 hover:bg-black/5 hover:text-[var(--color-coffee)] transition-colors"
+            >
+              <ArrowsClockwise size={16} weight="bold" />
+            </button>
+
+            <div className="absolute inset-x-0 top-[1%] sm:top-[3%] px-[16%] sm:px-[10%] text-center flex flex-col items-center gap-0.5 sm:gap-2">
+              <p className="enter-fade-up leading-none sm:leading-normal uppercase tracking-[0.1em] sm:tracking-[0.2em] text-[10px] sm:text-sm text-[var(--color-gold)] font-semibold">
+                Çiğ Kahve Pazar Yeri
+              </p>
+              <h1 className="enter-fade-up text-sm sm:text-2xl lg:text-4xl font-semibold leading-tight text-[var(--color-coffee)]">
+                Çiğ kahvede satıcı ile kavurmacı burada buluşur
+              </h1>
+              <p className="enter-fade-up hidden sm:block text-sm lg:text-base text-[var(--text-secondary)] max-w-xl mx-auto">
+                İlan verin, teklif alın, siparişi tamamlayın. Hepsi tek platformda.
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Hızlı erişim şeridi — fotoğrafın altında, tek satır; mobilde yatay kaydırılabilir */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-6 sm:mt-8">
-          <div className="enter-fade-up flex overflow-x-auto sm:overflow-visible gap-2 sm:gap-0 sm:rounded-2xl sm:border sm:border-[var(--border)] sm:bg-[var(--surface)] sm:shadow-sm sm:divide-x sm:divide-[var(--border)]">
-            {(user
-              ? [
-                  { label: "İlanlara Göz At", href: "/urunler" },
-                  { label: "Panelim", href: "/panel" },
-                  { label: "Favori İlanlarım", href: "/panel/favoriler" },
-                  { label: "Kahve Kuşağını Keşfet", href: "#kahve-kusagi" },
-                ]
-              : [
-                  { label: "İlanlara Göz At", href: "/urunler" },
-                  { label: "Ücretsiz Kayıt Ol", href: "/kayit" },
-                  { label: "Giriş Yap", href: "/giris" },
-                  { label: "Kahve Kuşağını Keşfet", href: "#kahve-kusagi" },
-                ]
-            ).map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                className="shrink-0 sm:flex-1 flex items-center justify-center gap-2 px-5 py-3.5 rounded-full sm:rounded-none border sm:border-0 border-[var(--border)] bg-[var(--surface)] sm:bg-transparent hover:bg-[var(--surface-alt)] transition-colors whitespace-nowrap"
-              >
-                <span className="font-medium text-[var(--color-coffee)] text-sm">{item.label}</span>
-                <ArrowRight size={13} weight="bold" className="text-[var(--color-gold)]" />
-              </Link>
-            ))}
-          </div>
-        </div>
       </section>
+
+      {/* Hızlı erişim şeridi — hero fotoğrafının hemen altında; aşağı scroll'da
+          site header'ının hemen altına yapışıp kalır (Excel'de üst satırı
+          dondurma mantığı) — bu yüzden hero section'ın DIŞINDA, sayfanın geri
+          kalanıyla aynı seviyede: sticky'nin "yapışık kalabileceği" alan az
+          içerikli hero section'a değil, altındaki uzun sayfa içeriğine bağlı */}
+      <div className="sticky z-20 max-w-4xl mx-auto px-4 sm:px-6 mb-6 sm:mb-8" style={{ top: stickyTop }}>
+        <div className="enter-fade-up flex overflow-x-auto sm:overflow-visible gap-2 sm:gap-0 bg-[var(--bg)] sm:rounded-2xl sm:border sm:border-[var(--border)] sm:bg-[var(--surface)] sm:shadow-sm sm:divide-x sm:divide-[var(--border)]">
+          {(user
+            ? [
+                { label: "İlanlara Göz At", href: "/urunler" },
+                { label: "Panelim", href: "/panel" },
+                { label: "Favori İlanlarım", href: "/panel/favoriler" },
+                { label: "Kahve Kuşağını Keşfet", href: "#kahve-kusagi" },
+              ]
+            : [
+                { label: "İlanlara Göz At", href: "/urunler" },
+                { label: "Ücretsiz Kayıt Ol", href: "/kayit" },
+                { label: "Giriş Yap", href: "/giris" },
+                { label: "Kahve Kuşağını Keşfet", href: "#kahve-kusagi" },
+              ]
+          ).map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              className="shrink-0 sm:flex-1 flex items-center justify-center gap-2 px-5 py-3.5 rounded-full sm:rounded-none border sm:border-0 border-[var(--border)] bg-[var(--surface)] sm:bg-transparent hover:bg-[var(--surface-alt)] transition-colors whitespace-nowrap"
+            >
+              <span className="font-medium text-[var(--color-coffee)] text-sm">{item.label}</span>
+              <ArrowRight size={13} weight="bold" className="text-[var(--color-gold)]" />
+            </Link>
+          ))}
+        </div>
+      </div>
 
       <div className="max-w-7xl mx-auto px-6 py-12 space-y-14">
         <Reveal>

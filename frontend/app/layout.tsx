@@ -37,7 +37,7 @@ export default function RootLayout({
     <html lang="tr" className="antialiased">
       <body className="min-h-dvh flex flex-col">
         <ToastProvider>
-          <div className="sticky top-0 z-30">
+          <div id="site-header" className="sticky top-0 z-30">
             <Nav />
             <RateTicker />
           </div>
