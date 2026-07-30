@@ -40,7 +40,7 @@ export default function Nav() {
 
   return (
     <header
-      className={`bg-[var(--color-coffee)] text-[var(--color-cream)] px-6 py-3 flex items-center gap-3 sticky top-0 z-30 transition-shadow duration-300 ${
+      className={`bg-[var(--color-coffee)] text-[var(--color-cream)] px-6 py-3 flex items-center gap-3 transition-shadow duration-300 ${
         scrolled ? "nav-scrolled" : ""
       }`}
     >

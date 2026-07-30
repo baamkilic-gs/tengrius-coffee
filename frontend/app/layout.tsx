@@ -37,8 +37,10 @@ export default function RootLayout({
     <html lang="tr" className="antialiased">
       <body className="min-h-dvh flex flex-col">
         <ToastProvider>
-          <Nav />
-          <RateTicker />
+          <div className="sticky top-0 z-30">
+            <Nav />
+            <RateTicker />
+          </div>
           <ActionBar />
           <div className="flex flex-1 min-h-0">
             <SideRail />
